@@ -1,4 +1,4 @@
-# InstaTest 🧪
+# OWL 
 
 AI-powered Instagram content hypothesis testing for small businesses.
 
