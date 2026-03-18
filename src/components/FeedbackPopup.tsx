@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { useLang } from '@/lib/lang-context'
+import { translations } from '@/lib/translations'
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyyWE7afnQGBm89NJaHPZlIgGxSVXiiyZ0C9rlkDwRbq0fqV90aLqsMKT4s5uQdj-m3rA/exec'
 
@@ -9,6 +11,9 @@ const EXCLUDED_PATHS = ['/', '/onboarding']
 
 export default function FeedbackPopup({ userEmail }: { userEmail: string }) {
   const pathname = usePathname()
+  const { lang } = useLang()
+  const tr = translations[lang]
+
   const [visible, setVisible] = useState(false)
   const [rating, setRating] = useState(0)
   const [hovered, setHovered] = useState(0)
@@ -82,24 +87,23 @@ export default function FeedbackPopup({ userEmail }: { userEmail: string }) {
       >
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <p style={{ fontSize: 20, marginBottom: 6 }}>Спасибо!</p>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>Ваш фидбек очень важен для нас.</p>
+            <p style={{ fontSize: 20, marginBottom: 6 }}>{tr.thanks}</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{tr.feedbackImportant}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Как вам OWL?</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>{tr.howsOwl}</h2>
               <button
                 type="button"
                 onClick={dismiss}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, lineHeight: 1, fontSize: 18 }}
-                aria-label="Закрыть"
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
 
-            {/* Stars */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
               {[1, 2, 3, 4, 5].map(star => (
                 <button
@@ -114,25 +118,22 @@ export default function FeedbackPopup({ userEmail }: { userEmail: string }) {
                     color: star <= (hovered || rating) ? '#F59E0B' : '#D4D4D8',
                     transition: 'color 0.1s',
                   }}
-                  aria-label={`${star} звезд`}
                 >
                   ★
                 </button>
               ))}
             </div>
 
-            {/* Comment */}
             <div style={{ marginBottom: 14 }}>
               <textarea
                 className="input"
                 rows={3}
-                placeholder="Оставить комментарий"
+                placeholder={tr.leaveComment}
                 value={comment}
                 onChange={e => setComment(e.target.value)}
               />
             </div>
 
-            {/* Join tester toggle */}
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 14, cursor: 'pointer' }}>
               <div
                 onClick={() => setJoinTester(v => !v)}
@@ -149,11 +150,10 @@ export default function FeedbackPopup({ userEmail }: { userEmail: string }) {
                 }} />
               </div>
               <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Хочу стать частью сообщества ранних тестировщиков — готов(а) на короткое интервью, чтобы помочь улучшить OWL
+                {tr.joinTester}
               </span>
             </label>
 
-            {/* Email */}
             <div style={{ marginBottom: 14 }}>
               <input
                 className="input"
@@ -164,35 +164,33 @@ export default function FeedbackPopup({ userEmail }: { userEmail: string }) {
               />
             </div>
 
-            {/* Contact */}
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                Контакт для связи — телефон, Telegram, Instagram или другие соцсети (необязательно)
+                {tr.contactHint}
               </p>
               <input
                 className="input"
                 type="text"
                 value={contact}
                 onChange={e => setContact(e.target.value)}
-                placeholder="+7 999 123-45-67 / @username"
+                placeholder={tr.contactPlaceholder}
               />
             </div>
 
-            {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
                 type="button"
                 onClick={dismiss}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)', textDecoration: 'underline', padding: 0 }}
               >
-                Позже
+                {tr.later}
               </button>
               <button
                 type="submit"
                 className="btn-primary"
                 disabled={rating === 0 || submitting}
               >
-                {submitting ? 'Отправка...' : 'Отправить фидбек'}
+                {submitting ? tr.submitting : tr.submitFeedback}
               </button>
             </div>
           </form>

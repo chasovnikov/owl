@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Providers from '@/components/Providers'
 
 export const metadata: Metadata = {
   title: 'OWL — AI content testing',
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body style={{ background: 'var(--bg)', minHeight: '100vh' }}>{children}</body>
+      <body style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

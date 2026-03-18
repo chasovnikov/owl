@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar projects={projects} userEmail={user.email} />
+      <Sidebar projects={projects} userEmail={user.email} userName={user.name} userAvatar={user.avatarUrl} />
       <div style={{ flex: 1, minWidth: 0, overflowX: 'hidden' }}>
         {children}
       </div>

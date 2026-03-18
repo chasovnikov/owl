@@ -8,26 +8,56 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  passwordHash       String?
-  completedOnboarding Boolean  @default(false)
-  createdAt          DateTime  @default(now())
-  projects           Project[]
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String?
+  avatarUrl           String?
+  passwordHash        String?
+  completedOnboarding Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  projects            Project[]
 }
 
 model Project {
-  id                     String     @id @default(cuid())
+  id                     String       @id @default(cuid())
   name                   String
   businessType           String
   tone                   String?
   narrativeStyle         String?
   goal                   String?
   strategyRecommendation String?
-  createdAt              DateTime   @default(now())
+  createdAt              DateTime     @default(now())
   userId                 String
-  user                   User       @relation(fields: [userId], references: [id])
+  user                   User         @relation(fields: [userId], references: [id])
   platforms              Platform[]
+  competitors            Competitor[]
+}
+
+model Competitor {
+  id              String             @id @default(cuid())
+  handle          String
+  projectId       String
+  project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  status          String             @default("idle") // idle | analyzing | done | error
+  // Manual data fields
+  followers       Int?
+  avgLikes        Int?
+  avgComments     Int?
+  postsPerWeek    Float?
+  contentTypes    String?            // comma-separated
+  mainTopics      String?
+  notes           String?
+  reports         CompetitorReport[]
+  createdAt       DateTime           @default(now())
+  lastAnalyzedAt  DateTime?
+}
+
+model CompetitorReport {
+  id           String     @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  report       String     // JSON: CompetitorAnalysisResult
+  createdAt    DateTime   @default(now())
 }
 
 model Platform {

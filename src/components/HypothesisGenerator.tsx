@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { generateHypothesesAction, saveHypothesesAction } from '@/lib/actions'
+import { useLang } from '@/lib/lang-context'
+import { translations } from '@/lib/translations'
 
 interface ExistingHypothesis {
   id: string
@@ -24,6 +26,9 @@ export default function HypothesisGenerator({ platformId, businessType, projectI
   projectId: string
   existingHypotheses: ExistingHypothesis[]
 }) {
+  const { lang } = useLang()
+  const tr = translations[lang]
+
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [generated, setGenerated] = useState<GeneratedHypothesis[]>([])
@@ -39,7 +44,7 @@ export default function HypothesisGenerator({ platformId, businessType, projectI
       const results = await generateHypothesesAction(platformId, businessType)
       setGenerated(results)
     } catch (e: any) {
-      setError(e.message || 'Ошибка генерации. Проверь OpenAI ключ.')
+      setError(e.message || tr.generationError)
     } finally {
       setLoading(false)
     }
@@ -74,26 +79,26 @@ export default function HypothesisGenerator({ platformId, businessType, projectI
       {existingHypotheses.length > 0 && (
         <div>
           <h2 className="text-base font-semibold text-white mb-4" style={{fontFamily: 'var(--font-display)'}}>
-            Активные гипотезы
+            {tr.activeHypotheses}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {existingHypotheses.map((h) => (
               <Link key={h.id} href={`/hypothesis/${h.id}`} className="card p-5 block group">
                 <div className="flex items-start justify-between mb-3">
-                  <span className="badge badge-purple text-[10px]">Гипотеза</span>
-                  {h.resultsCount > 0 && <span className="badge badge-green text-[10px]">{h.resultsCount} результатов</span>}
+                  <span className="badge badge-purple text-[10px]">{tr.hypothesisBadge}</span>
+                  {h.resultsCount > 0 && <span className="badge badge-green text-[10px]">{tr.resultsBadge(h.resultsCount)}</span>}
                 </div>
                 <h3 className="text-sm font-semibold text-white group-hover:text-fuchsia-300 transition-colors mb-2" style={{fontFamily: 'var(--font-display)'}}>
                   {h.title}
                 </h3>
                 <p className="text-xs text-gray-500 leading-relaxed mb-4">{h.description}</p>
                 <div className="flex gap-3 text-xs text-gray-600">
-                  <span>{h.postCount} постов</span>
+                  <span>{tr.postsLabel(h.postCount)}</span>
                   <span>·</span>
-                  <span>{h.postedCount} опубликовано</span>
+                  <span>{tr.postedLabel(h.postedCount)}</span>
                 </div>
                 <div className="mt-3 text-xs text-fuchsia-400 group-hover:text-fuchsia-300 transition-colors">
-                  Смотреть план →
+                  {tr.viewPlan}
                 </div>
               </Link>
             ))}
@@ -105,17 +110,17 @@ export default function HypothesisGenerator({ platformId, businessType, projectI
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-base font-semibold text-white" style={{fontFamily: 'var(--font-display)'}}>
-              Генерация гипотез
+              {tr.generateHypothesesTitle}
             </h2>
-            <p className="text-xs text-gray-500 mt-1">AI предложит 10 идей. Выбери до 3 для тестирования.</p>
+            <p className="text-xs text-gray-500 mt-1">{tr.aiWillSuggest}</p>
           </div>
           <button onClick={handleGenerate} disabled={loading} className="btn-primary px-5 py-2.5 text-sm disabled:opacity-60">
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Генерирую...
+                {tr.generatingBtn}
               </span>
-            ) : '✦ Генерировать идеи'}
+            ) : tr.generateIdeasBtn}
           </button>
         </div>
 
@@ -129,7 +134,7 @@ export default function HypothesisGenerator({ platformId, businessType, projectI
 
         {generated.length > 0 && (
           <div className="space-y-3 animate-fade-up">
-            <p className="text-xs text-gray-500 mb-2">Выбрано {selected.size}/3</p>
+            <p className="text-xs text-gray-500 mb-2">{tr.selectedCount(selected.size)}</p>
             {generated.map((h, i) => {
               const isSelected = selected.has(i)
               return (
@@ -150,7 +155,7 @@ export default function HypothesisGenerator({ platformId, businessType, projectI
             {selected.size > 0 && (
               <div className="pt-2">
                 <button onClick={handleSave} disabled={saving} className="btn-primary w-full py-3 text-sm disabled:opacity-60">
-                  {saving ? 'Сохраняю...' : `Сохранить ${selected.size} гипотез${selected.size === 1 ? 'у' : selected.size < 5 ? 'ы' : ''} →`}
+                  {saving ? tr.savingHypotheses : tr.saveHypotheses(selected.size)}
                 </button>
               </div>
             )}

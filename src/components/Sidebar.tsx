@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { OWLLogo } from './OwlLogo'
+import { useLang } from '@/lib/lang-context'
+import { translations } from '@/lib/translations'
 
 interface PostIdea { id: string }
 interface Hypothesis { id: string; title: string; postIdeas: PostIdea[] }
@@ -31,8 +33,10 @@ const rowBase: React.CSSProperties = {
   background: 'transparent', width: '100%', textAlign: 'left',
 }
 
-export default function Sidebar({ projects, userEmail }: { projects: Project[]; userEmail: string }) {
+export default function Sidebar({ projects, userEmail, userName, userAvatar }: { projects: Project[]; userEmail: string; userName?: string | null; userAvatar?: string | null }) {
   const pathname = usePathname()
+  const { lang } = useLang()
+  const tr = translations[lang]
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
     new Set(projects.filter(p => pathname.includes(p.id)).map(p => p.id))
   )
@@ -100,9 +104,36 @@ export default function Sidebar({ projects, userEmail }: { projects: Project[]; 
             </svg>
           </button>
         </div>
-        <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {userEmail}
-        </p>
+        {/* User row — click to open settings */}
+        <Link
+          href="/settings"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px',
+            borderRadius: 6, textDecoration: 'none', transition: 'background 0.1s',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-subtle, #f4f4f5)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <div style={{
+            width: 20, height: 20, borderRadius: 5, background: 'var(--accent)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0,
+            overflow: 'hidden',
+          }}>
+            {userAvatar
+              ? <img src={userAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : (userName || userEmail)[0].toUpperCase()
+            }
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            {userName || userEmail}
+          </p>
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
+            <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
+            <path d="M5 7h4M7 5v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+          </svg>
+        </Link>
       </div>
 
       {/* Nav */}
@@ -119,11 +150,11 @@ export default function Sidebar({ projects, userEmail }: { projects: Project[]; 
             <rect x="1" y="8" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
             <rect x="8" y="8" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
           </svg>
-          All projects
+          {tr.allProjects}
         </Link>
 
         <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '8px 8px 4px' }}>
-          Projects
+          {tr.projects}
         </p>
 
         {projects.map(project => {
@@ -161,7 +192,7 @@ export default function Sidebar({ projects, userEmail }: { projects: Project[]; 
               {isExpanded && (
                 <div style={{ marginLeft: 18, borderLeft: '1px solid var(--border-color)', paddingLeft: 8, marginTop: 2 }}>
                   {hypotheses.length === 0 && (
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '3px 8px' }}>No hypotheses</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '3px 8px' }}>{tr.noHypotheses}</p>
                   )}
                   {hypotheses.map(h => {
                     const isHActive = pathname.includes(h.id)
@@ -199,7 +230,7 @@ export default function Sidebar({ projects, userEmail }: { projects: Project[]; 
                                 <rect x="1" y="1" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="1.2"/>
                                 <path d="M3.5 4.5h5M3.5 6.5h3.5M3.5 8.5h2" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
                               </svg>
-                              {h.postIdeas.length} posts
+                              {tr.postsCount(h.postIdeas.length)}
                             </Link>
                           </div>
                         )}
@@ -216,9 +247,10 @@ export default function Sidebar({ projects, userEmail }: { projects: Project[]; 
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
-          New project
+          {tr.newProject}
         </Link>
       </div>
+
     </div>
   )
 }

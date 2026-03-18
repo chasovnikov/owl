@@ -5,10 +5,13 @@ import PostCard from '@/components/PostCard'
 import PostIdeasGenerator from '@/components/PostIdeasGenerator'
 import AnalysisPanel from '@/components/AnalysisPanel'
 import AddPostForm from '@/components/AddPostForm'
+import { getT } from '@/lib/lang-server'
 
 export default async function HypothesisPage({ params }: { params: { id: string } }) {
   const user = await getSession()
   if (!user) redirect('/')
+
+  const tr = getT()
 
   const hypothesis = await prisma.hypothesis.findUnique({
     where: { id: params.id },
@@ -27,20 +30,20 @@ export default async function HypothesisPage({ params }: { params: { id: string 
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div className="page-content">
         <div style={{ marginBottom: 24 }}>
-          <p className="section-label" style={{ marginBottom: 6 }}>Testing hypothesis</p>
+          <p className="section-label" style={{ marginBottom: 6 }}>{tr.testingHypothesis}</p>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: 6 }}>{hypothesis.title}</h1>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 560 }}>{hypothesis.description}</p>
 
           {postsWithResults.length > 0 && (
             <div style={{ display: 'flex', gap: 32, marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border-color)' }}>
               <div>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Posts with data</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{tr.postsWithData}</p>
                 <p style={{ fontSize: 20, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em' }}>
                   {postsWithResults.length}/{hypothesis.postIdeas.length}
                 </p>
               </div>
               <div>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Total engagement</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{tr.totalEngagement}</p>
                 <p style={{ fontSize: 20, fontWeight: 600, color: '#2D2D2D', letterSpacing: '-0.02em' }}>
                   {totalEngagement.toLocaleString()}
                 </p>
@@ -58,7 +61,7 @@ export default async function HypothesisPage({ params }: { params: { id: string 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Content plan</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>{tr.contentPlan}</h2>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <AddPostForm hypothesisId={hypothesis.id} />
                   <PostIdeasGenerator hypothesisId={hypothesis.id} regenerate />
