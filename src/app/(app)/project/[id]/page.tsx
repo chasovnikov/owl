@@ -113,6 +113,12 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             notes: c.notes,
             status: c.status,
             lastAnalyzedAt: c.lastAnalyzedAt,
+            followers: c.followers,
+            avgLikes: c.avgLikes,
+            avgComments: c.avgComments,
+            postsPerWeek: c.postsPerWeek,
+            contentTypes: c.contentTypes,
+            mainTopics: c.mainTopics,
             reports: c.reports.map(r => ({ id: r.id, report: r.report, createdAt: r.createdAt })),
           }))}
         />
