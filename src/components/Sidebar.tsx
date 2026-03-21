@@ -139,7 +139,7 @@ export default function Sidebar({ projects, userEmail, userName, userAvatar }: {
       {/* Nav */}
       <div style={{ padding: '8px', flex: 1 }}>
         <Link href="/dashboard" style={{
-          ...rowBase, textDecoration: 'none', marginBottom: 4,
+          ...rowBase, textDecoration: 'none', marginBottom: 2,
           color: pathname === '/dashboard' ? 'var(--text)' : 'var(--text-secondary)',
           background: pathname === '/dashboard' ? '#18181B' : 'transparent',
           ...(pathname === '/dashboard' ? { color: '#fff' } : {}),
@@ -151,6 +151,23 @@ export default function Sidebar({ projects, userEmail, userName, userAvatar }: {
             <rect x="8" y="8" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
           </svg>
           {tr.allProjects}
+        </Link>
+
+        <Link href="/calendar" style={{
+          ...rowBase, textDecoration: 'none', marginBottom: 4,
+          color: pathname === '/calendar' ? 'var(--text)' : 'var(--text-secondary)',
+          background: pathname === '/calendar' ? '#18181B' : 'transparent',
+          ...(pathname === '/calendar' ? { color: '#fff' } : {}),
+        }}>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+            <rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.3"/>
+            <path d="M1 6h12" stroke="currentColor" strokeWidth="1.3"/>
+            <path d="M4 1v2M10 1v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <circle cx="4.5" cy="9" r="0.8" fill="currentColor"/>
+            <circle cx="7" cy="9" r="0.8" fill="currentColor"/>
+            <circle cx="9.5" cy="9" r="0.8" fill="currentColor"/>
+          </svg>
+          Calendar
         </Link>
 
         <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '8px 8px 4px' }}>

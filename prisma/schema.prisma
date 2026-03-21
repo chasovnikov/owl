@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -91,6 +92,18 @@ model PostIdea {
   hypothesisId           String
   hypothesis             Hypothesis  @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
   result                 PostResult?
+  mediaFiles             PostMedia[]
+}
+
+model PostMedia {
+  id         String   @id @default(cuid())
+  postIdeaId String
+  url        String
+  filename   String
+  mimeType   String
+  size       Int
+  createdAt  DateTime @default(now())
+  postIdea   PostIdea @relation(fields: [postIdeaId], references: [id], onDelete: Cascade)
 }
 
 model PostResult {

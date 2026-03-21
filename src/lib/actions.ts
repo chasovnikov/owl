@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { writeFile } from 'fs/promises'
+import { writeFile, unlink, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { prisma } from '@/lib/prisma'
 import { createSession, clearSession, getSession, hashPassword } from '@/lib/auth'
@@ -119,17 +119,7 @@ export async function createOnboardingProjectAction(formData: FormData) {
 
   if (!name || !businessType) throw new Error('Заполни все поля')
 
-  // Generate AI strategy if strategy fields provided
-  let strategyRecommendation: string | undefined
-  if (tone || narrativeStyle || goal) {
-    try {
-      const strategy = await generateStrategyRecommendation(businessType, tone, narrativeStyle, goal)
-      strategyRecommendation = JSON.stringify(strategy)
-    } catch {
-      // Strategy generation is optional — don't block onboarding
-    }
-  }
-
+  // Create project first — don't block on slow AI call
   const project = await prisma.project.create({
     data: {
       name,
@@ -137,7 +127,6 @@ export async function createOnboardingProjectAction(formData: FormData) {
       tone,
       narrativeStyle,
       goal,
-      strategyRecommendation,
       userId: user.id,
       platforms: { create: { name: 'Instagram' } },
     },
@@ -147,6 +136,19 @@ export async function createOnboardingProjectAction(formData: FormData) {
     where: { id: user.id },
     data: { completedOnboarding: true },
   })
+
+  // Generate AI strategy after project is saved (optional, won't block if it fails/times out)
+  if (tone || narrativeStyle || goal) {
+    try {
+      const strategy = await generateStrategyRecommendation(businessType, tone, narrativeStyle, goal)
+      await prisma.project.update({
+        where: { id: project.id },
+        data: { strategyRecommendation: JSON.stringify(strategy) },
+      })
+    } catch {
+      // Strategy generation is optional — don't block onboarding
+    }
+  }
 
   redirect(`/project/${project.id}`)
 }
@@ -422,6 +424,44 @@ export async function analyzeCompetitorAction(competitorId: string) {
     throw new Error('Ошибка анализа')
   }
   revalidatePath(`/project/${competitor.projectId}`)
+}
+
+// ─── Post Media ───────────────────────────────────────────────────────────────
+
+export async function uploadPostMediaAction(formData: FormData) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const postIdeaId = formData.get('postIdeaId') as string
+  if (!postIdeaId) throw new Error('postIdeaId обязателен')
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) throw new Error('Файл не выбран')
+  if (file.size > 10 * 1024 * 1024) throw new Error('Максимальный размер — 10 МБ')
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
+  const filename = `${postIdeaId}_${Date.now()}.${ext}`
+  const dir = join(process.cwd(), 'public', 'uploads', 'posts')
+  await mkdir(dir, { recursive: true })
+  const bytes = await file.arrayBuffer()
+  await writeFile(join(dir, filename), Buffer.from(bytes))
+  const url = `/uploads/posts/${filename}`
+  const media = await prisma.postMedia.create({
+    data: { postIdeaId, url, filename: file.name, mimeType: file.type || 'application/octet-stream', size: file.size },
+  })
+  revalidatePath('/calendar')
+  return { ...media, createdAt: media.createdAt.toISOString() }
+}
+
+export async function deletePostMediaAction(mediaId: string) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const media = await prisma.postMedia.findUnique({ where: { id: mediaId } })
+  if (!media) throw new Error('Файл не найден')
+  try {
+    await unlink(join(process.cwd(), 'public', media.url))
+  } catch {
+    // File may not exist on disk (e.g. Vercel ephemeral FS)
+  }
+  await prisma.postMedia.delete({ where: { id: mediaId } })
+  revalidatePath('/calendar')
 }
 
 export async function analyzeHypothesisAction(hypothesisId: string) {
