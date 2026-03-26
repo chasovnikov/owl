@@ -12,10 +12,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     include: {
-      platforms: {
+      channels: {
         include: {
-          hypotheses: {
-            include: { postIdeas: true },
+          rubrics: {
+            include: { posts: true },
             orderBy: { createdAt: 'asc' },
           },
         },

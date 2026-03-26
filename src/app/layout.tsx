@@ -3,8 +3,8 @@ import './globals.css'
 import Providers from '@/components/Providers'
 
 export const metadata: Metadata = {
-  title: 'OWL — AI content testing',
-  description: 'Test Instagram content ideas with AI.',
+  title: 'Fumi — AI content testing',
+  description: 'Test content ideas with AI. Beautiful, minimal, and intelligent.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,35 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createOnboardingProjectAction } from '@/lib/actions'
+import { translations } from '@/lib/translations'
+import type { Lang } from '@/lib/translations'
 
-const BUSINESS_TYPES = [
-  { value: 'coffee shop', label: '☕ Coffee shop' },
-  { value: 'restaurant', label: '🍽️ Restaurant' },
-  { value: 'local business', label: '🏪 Local business' },
-  { value: 'personal brand', label: '✨ Personal brand' },
-  { value: 'agency', label: '🏢 Agency' },
-  { value: 'e-commerce', label: '🛍️ E-commerce' },
-  { value: 'online creator', label: '🎬 Online creator' },
-  { value: 'startup', label: '🚀 Startup' },
-  { value: 'education', label: '📚 Education' },
-  { value: 'fitness / wellness', label: '💪 Fitness / wellness' },
-  { value: 'other', label: '📦 Other' },
-]
+function getLang(): Lang {
+  if (typeof document === 'undefined') return 'ru'
+  const m = document.cookie.match(/(?:^|;\s*)lang=([^;]+)/)
+  return (m?.[1] === 'en' ? 'en' : 'ru') as Lang
+}
 
 function OwlLogo() {
   return (
     <div className="flex items-center gap-2">
-      <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-        <rect width="28" height="28" rx="7" fill="#5B6AF0"/>
-        <ellipse cx="10" cy="13" rx="3" ry="3.5" fill="white" opacity="0.95"/>
-        <ellipse cx="18" cy="13" rx="3" ry="3.5" fill="white" opacity="0.95"/>
-        <circle cx="10" cy="13" r="1.5" fill="#5B6AF0"/>
-        <circle cx="18" cy="13" r="1.5" fill="#5B6AF0"/>
-        <path d="M11.5 18.5 C12.5 19.5 15.5 19.5 16.5 18.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" opacity="0.9"/>
-        <path d="M12 8 L14 10 L16 8" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
-      </svg>
-      <span style={{fontFamily: 'var(--font-display)', fontSize: '17px', letterSpacing: '-0.02em', color: 'var(--text)'}}>OWL</span>
+      <div style={{ width: 26, height: 26, borderRadius: 8, background: 'linear-gradient(145deg, #5B6AF0, #9B6BFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(91,106,240,0.32)' }}>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+          <path d="M10 18 C7.2 14.5 5.5 10.8 6 7 C6.5 3.5 10 2 13 3.5 C15.8 5 15.5 9.5 13 13 L10 18 Z" fill="white" opacity="0.96"/>
+          <path d="M10 18 L12.5 5" stroke="rgba(91,106,240,0.45)" strokeWidth="0.9" strokeLinecap="round"/>
+        </svg>
+      </div>
+      <span style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.025em', background: 'linear-gradient(135deg, #5B6AF0, #9B6BFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fumi</span>
     </div>
   )
 }
@@ -44,6 +35,24 @@ interface FormData {
 }
 
 export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
+  const [lang, setLang] = useState<Lang>('ru')
+  useEffect(() => { setLang(getLang()) }, [])
+  const tr = translations[lang]
+
+  const BUSINESS_TYPES = [
+    { value: 'coffee shop', label: `☕ ${tr.bt_coffee_shop}` },
+    { value: 'restaurant', label: `🍽️ ${tr.bt_restaurant}` },
+    { value: 'local business', label: `🏪 ${tr.bt_local_business}` },
+    { value: 'personal brand', label: `✨ ${tr.bt_personal_brand}` },
+    { value: 'agency', label: `🏢 ${tr.bt_agency}` },
+    { value: 'e-commerce', label: `🛍️ ${tr.bt_ecommerce}` },
+    { value: 'online creator', label: `🎬 ${tr.bt_online_creator}` },
+    { value: 'startup', label: `🚀 ${tr.bt_startup}` },
+    { value: 'education', label: `📚 ${tr.bt_education}` },
+    { value: 'fitness / wellness', label: `💪 ${tr.bt_fitness}` },
+    { value: 'other', label: `📦 ${tr.bt_other}` },
+  ]
+
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -139,14 +148,18 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
           {/* ── Step 1: Intro ── */}
           {step === 1 && (
             <div className="animate-fade-up">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-6" style={{background: 'var(--accent-light)'}}>
-                🦉
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'linear-gradient(145deg, #5B6AF0, #9B6BFF)', boxShadow: '0 4px 16px rgba(91,106,240,0.32)' }}>
+                <svg width="26" height="26" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 18 C7.2 14.5 5.5 10.8 6 7 C6.5 3.5 10 2 13 3.5 C15.8 5 15.5 9.5 13 13 L10 18 Z" fill="white" opacity="0.96"/>
+                  <path d="M10 18 L12.5 5" stroke="rgba(91,106,240,0.45)" strokeWidth="0.9" strokeLinecap="round"/>
+                  <path d="M11.8 9.5 L14.8 8" stroke="rgba(255,255,255,0.45)" strokeWidth="0.8" strokeLinecap="round"/>
+                </svg>
               </div>
               <h1 className="text-3xl mb-3" style={{fontFamily: 'var(--font-display)', color: 'var(--text)', letterSpacing: '-0.02em'}}>
-                Meet OWL — your AI copilot for content experiments
+                Meet Fumi — your AI copilot for content experiments
               </h1>
               <p className="text-sm mb-8 leading-relaxed" style={{color: 'var(--text-secondary)'}}>
-                OWL помогает тестировать гипотезы контента, понимать что работает в соцсетях и строить системный контент-план.
+                Fumi помогает тестировать гипотезы контента, понимать что работает в соцсетях и строить системный контент-план.
               </p>
 
               <div className="space-y-3 mb-8">
@@ -164,7 +177,7 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
                   {
                     icon: '📅',
                     title: 'Turn strategy into a real posting plan',
-                    desc: 'OWL превращает стратегию контента в конкретный план публикаций.',
+                    desc: 'Fumi превращает стратегию контента в конкретный план публикаций.',
                   },
                 ].map(f => (
                   <div key={f.title} className="flex gap-4 p-4 rounded-xl" style={{background: 'var(--bg-subtle)', border: '1px solid var(--border)'}}>
@@ -244,7 +257,7 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
                 Define your content strategy
               </h2>
               <p className="text-sm mb-6" style={{color: 'var(--text-muted)'}}>
-                OWL будет использовать это для генерации релевантного контента.
+                Fumi будет использовать это для генерации релевантного контента.
               </p>
 
               <div className="space-y-4">
@@ -253,7 +266,7 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
                     Tone of voice
                   </label>
                   <p className="text-xs mb-2" style={{color: 'var(--text-muted)'}}>
-                    Это помогает OWL писать тексты в нужном стиле.
+                    Это помогает Fumi писать тексты в нужном стиле.
                   </p>
                   <input
                     type="text"
@@ -269,7 +282,7 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
                     Narrative style
                   </label>
                   <p className="text-xs mb-2" style={{color: 'var(--text-muted)'}}>
-                    OWL будет генерировать посты, которые соответствуют стилю бренда.
+                    Fumi будет генерировать посты, которые соответствуют стилю бренда.
                   </p>
                   <input
                     type="text"
@@ -285,7 +298,7 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
                     Goal
                   </label>
                   <p className="text-xs mb-2" style={{color: 'var(--text-muted)'}}>
-                    OWL будет предлагать контент, который помогает достичь этой цели.
+                    Fumi будет предлагать контент, который помогает достичь этой цели.
                   </p>
                   <input
                     type="text"
@@ -304,12 +317,12 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
             </div>
           )}
 
-          {/* ── Step 4: How OWL works ── */}
+          {/* ── Step 4: How Fumi works ── */}
           {step === 4 && (
             <div className="animate-fade-up">
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{color: 'var(--accent)'}}>Step 4 — How it works</p>
               <h2 className="text-2xl mb-2" style={{fontFamily: 'var(--font-display)', color: 'var(--text)'}}>
-                How OWL helps you grow your content
+                How Fumi helps you grow your content
               </h2>
               <p className="text-sm mb-7" style={{color: 'var(--text-muted)'}}>
                 Три простых шага от идеи до результата.
@@ -320,21 +333,21 @@ export default function OnboardingFlow({ userEmail }: { userEmail: string }) {
                   {
                     num: '01',
                     title: 'Create hypotheses',
-                    desc: 'Формулируй гипотезы контента — например "Reels с историями бариста получают больше сохранений". OWL помогает превращать идеи в тестируемые гипотезы.',
+                    desc: 'Формулируй гипотезы контента — например "Reels с историями бариста получают больше сохранений". Fumi помогает превращать идеи в тестируемые гипотезы.',
                     color: 'var(--accent-light)',
                     textColor: 'var(--accent)',
                   },
                   {
                     num: '02',
                     title: 'Generate content plan',
-                    desc: 'OWL создаёт идеи постов на основе гипотез. Ты сразу получаешь готовый контент-план с подписями и хэштегами.',
+                    desc: 'Fumi создаёт идеи постов на основе гипотез. Ты сразу получаешь готовый контент-план с подписями и хэштегами.',
                     color: '#F0FDF4',
                     textColor: 'var(--green)',
                   },
                   {
                     num: '03',
                     title: 'Track what works',
-                    desc: 'Загружай скриншот аналитики — OWL извлекает метрики и помогает понять какие форматы работают. Решения на данных, не на интуиции.',
+                    desc: 'Загружай скриншот аналитики — Fumi извлекает метрики и помогает понять какие форматы работают. Решения на данных, не на интуиции.',
                     color: '#FFF7ED',
                     textColor: 'var(--amber)',
                   },

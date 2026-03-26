@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { signupAction, loginAction, createOnboardingProjectAction } from '@/lib/actions'
 import { useLang } from '@/lib/lang-context'
 import { translations } from '@/lib/translations'
-import { OWLLogo } from './OwlLogo'
+import { FumiLogo } from './OwlLogo'
 
 function LangDropdown() {
   const { lang, setLang } = useLang()
@@ -126,6 +126,7 @@ export default function FullOnboarding() {
   }
 
   function next() { setError(''); setStep(s => Math.min(s + 1, TOTAL)) }
+  function skip() { setError(''); setStep(5) }
   function back() { setError(''); setStep(s => Math.max(s - 1, 1)) }
 
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
@@ -200,7 +201,7 @@ export default function FullOnboarding() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: 'var(--bg)' }}>
         <div className="mb-8 flex items-center gap-4">
-          <OWLLogo />
+          <FumiLogo />
           <LangDropdown />
         </div>
         <div className="w-full max-w-sm card p-8">
@@ -232,7 +233,7 @@ export default function FullOnboarding() {
   return (
     <main className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
       <header className="flex items-center justify-between px-8 py-4 border-b" style={s.border}>
-        <OWLLogo />
+        <FumiLogo />
         <div className="flex items-center gap-3">
           <LangDropdown />
           <button onClick={() => { setShowLogin(true); setError('') }} className="btn-secondary px-4 py-2 text-xs">{tr.ob_login}</button>
@@ -261,7 +262,14 @@ export default function FullOnboarding() {
 
           {step === 1 && (
             <div className="animate-fade-up">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-6" style={{ background: 'var(--accent-light)' }}>🦉</div>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'linear-gradient(145deg, #5B6AF0, #9B6BFF)', boxShadow: '0 4px 16px rgba(91,106,240,0.30)' }}>
+                <svg width="26" height="26" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 18 C7.2 14.5 5.5 10.8 6 7 C6.5 3.5 10 2 13 3.5 C15.8 5 15.5 9.5 13 13 L10 18 Z" fill="white" opacity="0.96"/>
+                  <path d="M10 18 L12.5 5" stroke="rgba(91,106,240,0.45)" strokeWidth="0.9" strokeLinecap="round"/>
+                  <path d="M11.8 9.5 L14.8 8" stroke="rgba(255,255,255,0.45)" strokeWidth="0.8" strokeLinecap="round"/>
+                  <path d="M11 12.5 L14 11.5" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" strokeLinecap="round"/>
+                </svg>
+              </div>
               <h1 className="text-3xl mb-3" style={{ fontFamily: 'var(--font-display)', ...s.text, letterSpacing: '-0.02em' }}>
                 {tr.ob_step1Title}
               </h1>
@@ -317,6 +325,7 @@ export default function FullOnboarding() {
                   disabled={!data.businessType || (data.businessType === 'other' && !data.businessTypeCustom)}
                   className="btn-primary flex-1 py-2.5 disabled:opacity-40">{tr.ob_continue}</button>
               </div>
+              <button onClick={skip} className="w-full text-center mt-3 text-xs" style={s.muted}>{tr.ob_skip}</button>
             </div>
           )}
 
@@ -326,23 +335,30 @@ export default function FullOnboarding() {
               <h2 className="text-2xl mb-1" style={{ fontFamily: 'var(--font-display)', ...s.text }}>{tr.ob_step3Title}</h2>
               <p className="text-sm mb-6" style={s.muted}>{tr.ob_step3Desc}</p>
               <div className="space-y-4">
-                {[
-                  { field: 'tone' as const, label: tr.ob_toneLabel, placeholder: tr.ob_tonePlaceholder, hint: tr.ob_toneHint },
-                  { field: 'narrativeStyle' as const, label: tr.ob_narrativeLabel, placeholder: tr.ob_narrativePlaceholder, hint: tr.ob_narrativeHint },
-                  { field: 'goal' as const, label: tr.ob_goalLabel, placeholder: tr.ob_goalPlaceholder, hint: tr.ob_goalHint },
-                ].map(f => (
-                  <div key={f.field} className="card p-4">
-                    <label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={s.muted}>{f.label}</label>
-                    <p className="text-xs mb-2" style={s.muted}>{f.hint}</p>
-                    <input type="text" placeholder={f.placeholder} value={data[f.field]}
-                      onChange={e => update(f.field, e.target.value)} className="input w-full px-3.5 py-2.5" />
-                  </div>
-                ))}
+                <div className="card p-4">
+                  <label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={s.muted}>{tr.strategyAudienceLabel}</label>
+                  <p className="text-xs mb-2" style={s.muted}>{tr.strategyAudienceHint}</p>
+                  <textarea placeholder={tr.strategyAudiencePlaceholder} value={data.tone}
+                    onChange={e => update('tone', e.target.value)} rows={3} className="input w-full px-3.5 py-2.5" />
+                </div>
+                <div className="card p-4">
+                  <label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={s.muted}>{tr.strategyVibeLabel}</label>
+                  <p className="text-xs mb-2" style={s.muted}>{tr.strategyVibeHint}</p>
+                  <textarea placeholder={tr.strategyVibePlaceholder} value={data.narrativeStyle}
+                    onChange={e => update('narrativeStyle', e.target.value)} rows={2} className="input w-full px-3.5 py-2.5" />
+                </div>
+                <div className="card p-4">
+                  <label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={s.muted}>{tr.strategyGoalLabel2}</label>
+                  <p className="text-xs mb-2" style={s.muted}>{tr.strategyGoalHint}</p>
+                  <textarea placeholder={tr.strategyGoalPlaceholder2} value={data.goal}
+                    onChange={e => update('goal', e.target.value)} rows={2} className="input w-full px-3.5 py-2.5" />
+                </div>
               </div>
               <div className="flex gap-2 mt-5">
                 <button onClick={back} className="btn-secondary px-5 py-2.5">{tr.ob_back}</button>
                 <button onClick={next} className="btn-primary flex-1 py-2.5">{tr.ob_continue}</button>
               </div>
+              <button onClick={skip} className="w-full text-center mt-3 text-xs" style={s.muted}>{tr.ob_skip}</button>
             </div>
           )}
 
@@ -370,6 +386,7 @@ export default function FullOnboarding() {
                 <button onClick={back} className="btn-secondary px-5 py-2.5">{tr.ob_back}</button>
                 <button onClick={next} className="btn-primary flex-1 py-2.5">{tr.ob_createAccount}</button>
               </div>
+              <button onClick={skip} className="w-full text-center mt-3 text-xs" style={s.muted}>{tr.ob_skip}</button>
             </div>
           )}
 
@@ -416,10 +433,10 @@ export default function FullOnboarding() {
               <div className="p-4 rounded-xl mb-5 space-y-2" style={{ background: 'var(--accent-light)', border: '1px solid rgba(91,106,240,0.15)' }}>
                 <p className="text-xs font-semibold mb-2" style={s.accent}>{tr.ob_yourSettings}</p>
                 {[
-                  { label: tr.bt_coffee_shop.length > 0 ? 'Business' : 'Business', value: data.businessType === 'other' ? data.businessTypeCustom : data.businessType },
-                  { label: 'Tone', value: data.tone || '—' },
-                  { label: 'Style', value: data.narrativeStyle || '—' },
-                  { label: 'Goal', value: data.goal || '—' },
+                  { label: tr.ob_step2Label.split('—')[1]?.trim() || 'Business', value: data.businessType === 'other' ? data.businessTypeCustom : data.businessType },
+                  { label: tr.audienceLabel, value: data.tone || '—' },
+                  { label: tr.vibeLabel, value: data.narrativeStyle || '—' },
+                  { label: tr.ob_goalLabel, value: data.goal || '—' },
                 ].map(row => (
                   <div key={row.label} className="flex items-start gap-3">
                     <span className="text-xs w-16 flex-shrink-0 font-medium" style={s.accent}>{row.label}</span>

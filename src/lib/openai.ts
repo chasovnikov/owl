@@ -107,13 +107,22 @@ export async function improveHypothesis(
 
 export async function generateStrategyRecommendation(
   businessType: string,
-  tone: string,
-  narrativeStyle: string,
+  audience: string,
+  vibe: string,
   goal: string
 ): Promise<StrategyRecommendation> {
-  const prompt = `Создай контент-стратегию для Instagram.
-Бизнес: ${businessType}, Тон: ${tone}, Стиль: ${narrativeStyle}, Цель: ${goal}
-Отвечай на русском.
+  const parts = [
+    `Тип проекта: ${businessType}`,
+    audience && `Аудитория и польза: ${audience}`,
+    vibe && `Вайб и стиль: ${vibe}`,
+    goal && `Цель: ${goal}`,
+  ].filter(Boolean).join('\n')
+
+  const prompt = `Создай конкретную контент-стратегию на основе данных о проекте.
+
+${parts}
+
+Отвечай на русском. Будь конкретным и практичным — без воды.
 Верни ТОЛЬКО JSON: {"strategySummary": "...", "contentDirections": ["...", "...", "..."], "exampleThemes": ["...", "...", "..."]}`
 
   const response = await openai.chat.completions.create({

@@ -30,90 +30,104 @@ model Project {
   createdAt              DateTime     @default(now())
   userId                 String
   user                   User         @relation(fields: [userId], references: [id])
-  platforms              Platform[]
+  channels               Channel[]
   competitors            Competitor[]
 }
 
 model Competitor {
-  id              String             @id @default(cuid())
-  handle          String
-  projectId       String
-  project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  status          String             @default("idle") // idle | analyzing | done | error
-  // Manual data fields
-  followers       Int?
-  avgLikes        Int?
-  avgComments     Int?
-  postsPerWeek    Float?
-  contentTypes    String?            // comma-separated
-  mainTopics      String?
-  notes           String?
-  reports         CompetitorReport[]
-  createdAt       DateTime           @default(now())
-  lastAnalyzedAt  DateTime?
+  id             String             @id @default(cuid())
+  handle         String
+  projectId      String
+  project        Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  status         String             @default("idle")
+  followers      Int?
+  avgLikes       Int?
+  avgComments    Int?
+  postsPerWeek   Float?
+  contentTypes   String?
+  mainTopics     String?
+  notes          String?
+  reports        CompetitorReport[]
+  createdAt      DateTime           @default(now())
+  lastAnalyzedAt DateTime?
 }
 
 model CompetitorReport {
   id           String     @id @default(cuid())
   competitorId String
   competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
-  report       String     // JSON: CompetitorAnalysisResult
+  report       String
   createdAt    DateTime   @default(now())
 }
 
-model Platform {
-  id         String       @id @default(cuid())
-  name       String       @default("Instagram")
-  projectId  String
-  project    Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  hypotheses Hypothesis[]
+// Канал социальной сети (Instagram, Youtube, Threads)
+// DB table: Platform (unchanged for backward compat)
+model Channel {
+  id        String   @id @default(cuid())
+  name      String   @default("Instagram")
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  rubrics   Rubric[]
+
+  @@map("Platform")
 }
 
-model Hypothesis {
-  id          String     @id @default(cuid())
+// Рубрика (контент-категория, бывшая Hypothesis)
+// DB table: Hypothesis (unchanged)
+model Rubric {
+  id          String   @id @default(cuid())
   title       String
   description String
-  platformId  String
-  createdAt   DateTime   @default(now())
-  platform    Platform   @relation(fields: [platformId], references: [id], onDelete: Cascade)
-  postIdeas   PostIdea[]
+  channelId   String   @map("platformId")
+  createdAt   DateTime @default(now())
+  channel     Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  posts       Post[]
+
+  @@map("Hypothesis")
 }
 
-model PostIdea {
+// Пост (бывший PostIdea)
+// DB table: PostIdea (unchanged)
+// status: DRAFT | SCHEDULED | PUBLISHED
+model Post {
   id                     String      @id @default(cuid())
   title                  String
   script                 String
   caption                String
   hashtags               String
+  postText               String?     // основной текст поста
+  status                 String      @default("DRAFT")
   posted                 Boolean     @default(false)
   isUserCreated          Boolean     @default(false)
   recommendedPublishDate DateTime?
   scheduledPublishDate   DateTime?
-  hypothesisId           String
-  hypothesis             Hypothesis  @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
+  rubricId               String      @map("hypothesisId")
+  rubric                 Rubric      @relation(fields: [rubricId], references: [id], onDelete: Cascade)
   result                 PostResult?
   mediaFiles             PostMedia[]
+
+  @@map("PostIdea")
 }
 
 model PostMedia {
-  id         String   @id @default(cuid())
-  postIdeaId String
-  url        String
-  filename   String
-  mimeType   String
-  size       Int
-  createdAt  DateTime @default(now())
-  postIdea   PostIdea @relation(fields: [postIdeaId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  postId    String   @map("postIdeaId")
+  url       String
+  filename  String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model PostResult {
   id            String   @id @default(cuid())
-  postIdeaId    String   @unique
+  postId        String   @unique @map("postIdeaId")
   views         Int      @default(0)
   likes         Int      @default(0)
   comments      Int      @default(0)
   saves         Int      @default(0)
   screenshotUrl String?
   createdAt     DateTime @default(now())
-  postIdea      PostIdea @relation(fields: [postIdeaId], references: [id], onDelete: Cascade)
+  post          Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

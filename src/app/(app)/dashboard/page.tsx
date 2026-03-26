@@ -30,8 +30,8 @@ export default async function DashboardPage() {
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     include: {
-      platforms: {
-        include: { hypotheses: { include: { postIdeas: true } } },
+      channels: {
+        include: { rubrics: { include: { posts: true } } },
       },
     },
   })
@@ -39,17 +39,18 @@ export default async function DashboardPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div className="page-content">
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: 4 }}>{tr.dashboardTitle}</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{tr.dashboardSubtitle}</p>
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.025em', marginBottom: 6 }}>{tr.dashboardTitle}</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{tr.dashboardSubtitle}</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-          <div className="card" style={{ padding: 20 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--text)' }}>{tr.newProjectCard}</p>
-            <form action={createProjectAction} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 16 }}>
+          {/* New project card */}
+          <div className="card" style={{ padding: 24, border: '1.5px dashed var(--border-medium)' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 18, color: 'var(--text)', letterSpacing: '-0.01em' }}>{tr.newProjectCard}</p>
+            <form action={createProjectAction} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <input type="text" name="name" placeholder={tr.projectNamePlaceholder} required className="input" />
-              <select name="businessType" required className="input" style={{ cursor: 'pointer' }}>
+              <select name="businessType" required className="input select">
                 <option value="">{tr.businessTypePlaceholder}</option>
                 {BUSINESS_TYPES.map(bt => (
                   <option key={bt.value} value={bt.value}>{tr[bt.labelKey]}</option>
@@ -60,16 +61,16 @@ export default async function DashboardPage() {
           </div>
 
           {projects.map((project) => {
-            const hypothesisCount = project.platforms[0]?.hypotheses.length ?? 0
-            const postCount = project.platforms[0]?.hypotheses.reduce((a, h) => a + h.postIdeas.length, 0) ?? 0
+            const hypothesisCount = project.channels.reduce((a, ch) => a + ch.rubrics.length, 0)
+            const postCount = project.channels.reduce((a, ch) => a + ch.rubrics.reduce((b, r) => b + r.posts.length, 0), 0)
             const strategy = project.strategyRecommendation ? JSON.parse(project.strategyRecommendation) : null
 
             return (
-              <Link key={project.id} href={`/project/${project.id}`} style={{ textDecoration: 'none' }}>
-                <div className="card card-hover" style={{ padding: 20, height: '100%', cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <Link key={project.id} href={project.channels[0] ? `/project/${project.id}/channel/${project.channels[0].id}` : `/project/${project.id}`} style={{ textDecoration: 'none' }}>
+                <div className="card card-hover" style={{ padding: 24, height: '100%', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                     <div>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{project.name}</p>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 3, letterSpacing: '-0.01em' }}>{project.name}</p>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{project.businessType}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -78,15 +79,15 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   {strategy?.strategySummary && (
-                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 12,
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: 14,
                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                       {strategy.strategySummary}
                     </p>
                   )}
-                  <div className="separator" style={{ margin: '12px 0' }} />
-                  <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--text-muted)' }}>
+                  <div className="separator" style={{ margin: '14px 0' }} />
+                  <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--text-muted)' }}>
                     <span>{tr.hypothesesCount(hypothesisCount)}</span>
-                    <span>·</span>
+                    <span style={{ opacity: 0.4 }}>·</span>
                     <span>{tr.postsTotal(postCount)}</span>
                   </div>
                 </div>

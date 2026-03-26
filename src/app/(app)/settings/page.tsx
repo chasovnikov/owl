@@ -13,22 +13,19 @@ export default async function SettingsPage() {
   const projects = await prisma.project.findMany({
     where: { userId: user.id },
     include: {
-      platforms: {
+      channels: {
         include: {
-          hypotheses: {
-            include: { postIdeas: { include: { result: true } } },
+          rubrics: {
+            include: { posts: { include: { result: true } } },
           },
         },
       },
     },
   })
 
-  const hypothesesCount = projects.reduce((a, p) => a + (p.platforms[0]?.hypotheses.length ?? 0), 0)
-  const postsCount = projects.reduce((a, p) =>
-    a + (p.platforms[0]?.hypotheses.reduce((b, h) => b + h.postIdeas.length, 0) ?? 0), 0)
-  const resultsCount = projects.reduce((a, p) =>
-    a + (p.platforms[0]?.hypotheses.reduce((b, h) =>
-      b + h.postIdeas.filter(pi => pi.result).length, 0) ?? 0), 0)
+  const hypothesesCount = projects.reduce((a, p) => a + p.channels.reduce((b, ch) => b + ch.rubrics.length, 0), 0)
+  const postsCount = projects.reduce((a, p) => a + p.channels.reduce((b, ch) => b + ch.rubrics.reduce((c, r) => c + r.posts.length, 0), 0), 0)
+  const resultsCount = projects.reduce((a, p) => a + p.channels.reduce((b, ch) => b + ch.rubrics.reduce((c, r) => c + r.posts.filter(pi => pi.result).length, 0), 0), 0)
 
   const stats = {
     projects: projects.length,

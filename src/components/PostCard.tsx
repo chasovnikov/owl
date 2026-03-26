@@ -131,22 +131,27 @@ export default function PostCard({ post, index }: { post: Post; index: number })
   ]
 
   return (
-    <div className="card animate-fade-up" style={{ padding: 16, animationDelay: `${index * 40}ms`, opacity: 0 }}>
+    <div className="card animate-fade-up" style={{ padding: 20, animationDelay: `${index * 40}ms`, opacity: 0 }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>#{index + 1}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>#{index + 1}</span>
           {post.isUserCreated && <span className="badge badge-default">{tr.mine}</span>}
           {localPosted ? <span className="badge badge-green">{tr.published}</span> : <span className="badge badge-default">{tr.draft}</span>}
           {localResult && <span className="badge badge-primary">{tr.hasData}</span>}
         </div>
       </div>
 
-      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{localTitle}</p>
+      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 14, lineHeight: 1.4, letterSpacing: '-0.01em' }}>{localTitle}</p>
 
       {/* Metrics */}
       {localResult && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: 10, borderRadius: 8, background: '#F9FAFB', border: '1px solid var(--border-color)', marginBottom: 10 }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+          padding: '12px 14px', borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg)', border: '1px solid var(--border-color)',
+          marginBottom: 14,
+        }}>
           {[
             { label: tr.views, value: localResult.views },
             { label: tr.likes, value: localResult.likes },
@@ -154,110 +159,126 @@ export default function PostCard({ post, index }: { post: Post; index: number })
             { label: tr.saves, value: localResult.saves },
           ].map(m => (
             <div key={m.label} style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{m.value.toLocaleString()}</p>
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>{m.label}</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>{m.value.toLocaleString()}</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{m.label}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Date row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
         {post.recommendedPublishDate && !scheduledDate && (
-          <span style={{ fontSize: 11, color: '#3F3F3F' }}>
+          <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 500 }}>
             ✦ AI: {new Date(post.recommendedPublishDate).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}
           </span>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{tr.dateLabel}</span>
-          <input type="date" value={scheduledDate} onChange={handleDateChange} className="input" style={{ height: 28, fontSize: 11, padding: '0 8px', width: 'auto' }} />
+          <input type="date" value={scheduledDate} onChange={handleDateChange} className="input"
+            style={{ height: 30, fontSize: 11, padding: '0 10px', width: 'auto', borderRadius: 'var(--radius-xs)' }} />
         </div>
         {publishDate && (
-          <button onClick={handleDownloadICS} style={{ fontSize: 11, color: '#3F3F3F', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button onClick={handleDownloadICS} style={{
+            fontSize: 11, color: 'var(--text-secondary)',
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            transition: 'color 0.15s',
+          }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+          >
             {tr.saveToCalendar}
           </button>
         )}
       </div>
 
       {/* Expand toggle */}
-      <button onClick={() => setExpanded(!expanded)} className="btn-ghost" style={{ height: 26, fontSize: 11, padding: '0 6px', marginBottom: 8, color: 'var(--text-muted)' }}>
+      <button onClick={() => setExpanded(!expanded)} className="btn-ghost"
+        style={{ height: 28, fontSize: 11, padding: '0 8px', marginBottom: 10 }}>
         {expanded ? tr.hide : tr.scriptCaption}
       </button>
 
       {expanded && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }} className="animate-fade-up">
           {[{ label: tr.script, content: localScript }, { label: tr.caption, content: localCaption }].map(s => (
             <div key={s.label}>
-              <p className="section-label" style={{ marginBottom: 6 }}>{s.label}</p>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, padding: '8px 10px', borderRadius: 6, background: '#F9FAFB', border: '1px solid var(--border-color)' }}>{s.content}</p>
+              <p className="section-label" style={{ marginBottom: 7 }}>{s.label}</p>
+              <p style={{
+                fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7,
+                padding: '10px 12px', borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg)', border: '1px solid var(--border-color)',
+              }}>{s.content}</p>
             </div>
           ))}
           <div>
-            <p className="section-label" style={{ marginBottom: 6 }}>{tr.hashtags}</p>
-            <p style={{ fontSize: 12, color: '#3F3F3F' }}>{localHashtags}</p>
+            <p className="section-label" style={{ marginBottom: 7 }}>{tr.hashtags}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{localHashtags}</p>
           </div>
         </div>
       )}
 
       {/* AI improve result */}
       {improveResult && (
-        <div className="ai-block animate-fade-up" style={{ padding: 12, marginBottom: 10 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#1A1A1A', marginBottom: 8 }}>{tr.aiImprovedPost}</p>
-          <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: 'var(--text)' }}>{improveResult.improvedTitle}</p>
-          <p style={{ fontSize: 11, color: '#4B5563', lineHeight: 1.5, marginBottom: 4 }}>{improveResult.improvedCaption}</p>
-          <p style={{ fontSize: 11, color: '#3F3F3F', marginBottom: 8 }}>{improveResult.improvedHashtags}</p>
+        <div className="ai-block animate-fade-up" style={{ padding: 14, marginBottom: 12 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', marginBottom: 10, letterSpacing: '0.03em', textTransform: 'uppercase' }}>{tr.aiImprovedPost}</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--text)', letterSpacing: '-0.01em' }}>{improveResult.improvedTitle}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 6 }}>{improveResult.improvedCaption}</p>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>{improveResult.improvedHashtags}</p>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={handleApplyImproved} className="btn-primary" style={{ height: 28, fontSize: 11 }}>{tr.apply}</button>
-            <button onClick={() => setImproveResult(null)} className="btn-secondary" style={{ height: 28, fontSize: 11 }}>{tr.dismiss}</button>
+            <button onClick={handleApplyImproved} className="btn-primary" style={{ height: 30, fontSize: 11, padding: '0 14px' }}>{tr.apply}</button>
+            <button onClick={() => setImproveResult(null)} className="btn-secondary" style={{ height: 30, fontSize: 11, padding: '0 12px' }}>{tr.dismiss}</button>
           </div>
         </div>
       )}
 
       {/* Actions */}
-      <div className="separator" style={{ margin: '10px 0' }} />
+      <div className="separator" style={{ margin: '12px 0' }} />
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {!localPosted && (
-          <button onClick={handleMarkPosted} disabled={isPosting} className="btn-secondary" style={{ height: 28, fontSize: 11 }}>
+          <button onClick={handleMarkPosted} disabled={isPosting} className="btn-secondary" style={{ height: 30, fontSize: 11, padding: '0 14px' }}>
             {isPosting ? tr.marking : tr.markPublished}
           </button>
         )}
-        <button onClick={handleImprove} disabled={isImproving} className="btn-ghost" style={{ height: 28, fontSize: 11 }}>
+        <button onClick={handleImprove} disabled={isImproving} className="btn-ghost" style={{ height: 30, fontSize: 11 }}>
           {isImproving ? tr.improving : tr.improveWithAi}
         </button>
         {localPosted && (
           <>
-            <label className="btn-secondary" style={{ height: 28, fontSize: 11, cursor: 'pointer' }}>
+            <label className="btn-secondary" style={{ height: 30, fontSize: 11, cursor: 'pointer', padding: '0 14px' }}>
               {isExtracting ? tr.reading : tr.screenshot}
               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleScreenshot} disabled={isExtracting} />
             </label>
-            <button onClick={() => setShowResultForm(!showResultForm)} className="btn-secondary" style={{ height: 28, fontSize: 11 }}>
+            <button onClick={() => setShowResultForm(!showResultForm)} className="btn-secondary" style={{ height: 30, fontSize: 11, padding: '0 14px' }}>
               {localResult ? tr.editMetrics : tr.addMetrics}
             </button>
           </>
         )}
       </div>
 
-      {extractError && <p style={{ fontSize: 11, color: 'var(--amber)', marginTop: 6 }}>{extractError}</p>}
+      {extractError && <p style={{ fontSize: 11, color: 'var(--amber)', marginTop: 8 }}>{extractError}</p>}
 
       {/* Results form */}
       {showResultForm && (
-        <form onSubmit={handleSaveResult} className="animate-fade-up" style={{ marginTop: 12, padding: 12, borderRadius: 8, background: '#F9FAFB', border: '1px solid var(--border-color)' }}>
-          <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, color: 'var(--text)' }}>
+        <form onSubmit={handleSaveResult} className="animate-fade-up" style={{
+          marginTop: 14, padding: 14, borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg)', border: '1px solid var(--border-color)',
+        }}>
+          <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 12, color: 'var(--text)' }}>
             {tr.metricsTitle} {extractedMetrics ? `(${tr.detectedByAi})` : ''}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {metricFields.map(f => (
               <div key={f.name}>
-                <label className="section-label" style={{ display: 'block', marginBottom: 4 }}>{f.label}</label>
+                <label className="section-label" style={{ display: 'block', marginBottom: 5 }}>{f.label}</label>
                 <input type="number" name={f.name} min="0"
                   defaultValue={extractedMetrics?.[f.name as keyof PostResult] ?? localResult?.[f.name as keyof PostResult] ?? 0}
-                  className="input" style={{ height: 32, fontSize: 12 }} />
+                  className="input" style={{ height: 34, fontSize: 13 }} />
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-            <button type="submit" disabled={isSaving} className="btn-primary" style={{ height: 30, fontSize: 11 }}>{isSaving ? tr.saving : tr.save}</button>
-            <button type="button" onClick={() => setShowResultForm(false)} className="btn-secondary" style={{ height: 30, fontSize: 11 }}>{tr.cancel}</button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <button type="submit" disabled={isSaving} className="btn-primary" style={{ height: 32, fontSize: 12 }}>{isSaving ? tr.saving : tr.save}</button>
+            <button type="button" onClick={() => setShowResultForm(false)} className="btn-secondary" style={{ height: 32, fontSize: 12 }}>{tr.cancel}</button>
           </div>
         </form>
       )}

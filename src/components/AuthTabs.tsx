@@ -40,23 +40,23 @@ export default function AuthTabs() {
         {tab === 'login' ? 'Добро пожаловать' : 'Создать аккаунт'}
       </h2>
       <p className="text-sm mb-6" style={{color: 'var(--text-muted)'}}>
-        {tab === 'login' ? 'Войди в свой аккаунт OWL' : 'Начни тестировать контент бесплатно'}
+        {tab === 'login' ? 'Войди в свой аккаунт Fumi' : 'Начни тестировать контент бесплатно'}
       </p>
 
       {/* Tabs */}
-      <div className="flex mb-6 p-1 rounded-lg" style={{background: 'var(--bg-subtle)', border: '1px solid var(--border)'}}>
+      <div className="flex mb-6 p-1" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
         {(['login', 'signup'] as const).map((t) => (
           <button
             key={t}
             onClick={() => { setTab(t); setError('') }}
-            className="flex-1 py-2 text-sm rounded-md transition-all"
+            className="flex-1 py-2 text-sm transition-all"
             style={{
               fontWeight: 500,
-              fontFamily: 'var(--font-body)',
+              borderRadius: 'calc(var(--radius-sm) - 3px)',
               background: tab === t ? 'var(--surface)' : 'transparent',
               color: tab === t ? 'var(--text)' : 'var(--text-muted)',
               boxShadow: tab === t ? 'var(--shadow-xs)' : 'none',
-              border: tab === t ? '1px solid var(--border)' : '1px solid transparent',
+              border: tab === t ? '1px solid var(--border-color)' : '1px solid transparent',
             }}
           >
             {t === 'login' ? 'Войти' : 'Регистрация'}

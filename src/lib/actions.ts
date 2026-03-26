@@ -119,17 +119,8 @@ export async function createOnboardingProjectAction(formData: FormData) {
 
   if (!name || !businessType) throw new Error('Заполни все поля')
 
-  // Create project first — don't block on slow AI call
   const project = await prisma.project.create({
-    data: {
-      name,
-      businessType,
-      tone,
-      narrativeStyle,
-      goal,
-      userId: user.id,
-      platforms: { create: { name: 'Instagram' } },
-    },
+    data: { name, businessType, tone, narrativeStyle, goal, userId: user.id },
   })
 
   await prisma.user.update({
@@ -137,7 +128,6 @@ export async function createOnboardingProjectAction(formData: FormData) {
     data: { completedOnboarding: true },
   })
 
-  // Generate AI strategy after project is saved (optional, won't block if it fails/times out)
   if (tone || narrativeStyle || goal) {
     try {
       const strategy = await generateStrategyRecommendation(businessType, tone, narrativeStyle, goal)
@@ -146,7 +136,7 @@ export async function createOnboardingProjectAction(formData: FormData) {
         data: { strategyRecommendation: JSON.stringify(strategy) },
       })
     } catch {
-      // Strategy generation is optional — don't block onboarding
+      // Strategy generation is optional
     }
   }
 
@@ -162,48 +152,94 @@ export async function createProjectAction(formData: FormData) {
   const businessType = formData.get('businessType') as string
   if (!name || !businessType) throw new Error('Заполни все поля')
   const project = await prisma.project.create({
-    data: { name, businessType, userId: user.id, platforms: { create: { name: 'Instagram' } } },
+    data: { name, businessType, userId: user.id },
   })
-  redirect(`/project/${project.id}/strategy`)
+  redirect(`/project/${project.id}`)
 }
 
 export async function saveStrategyAction(formData: FormData) {
   const user = await getSession()
   if (!user) redirect('/')
   const projectId = formData.get('projectId') as string
-  const tone = formData.get('tone') as string
-  const narrativeStyle = formData.get('narrativeStyle') as string
-  const goal = formData.get('goal') as string
+  const audience = (formData.get('audience') as string) || ''
+  const vibe = (formData.get('vibe') as string) || ''
+  const goal = (formData.get('goal') as string) || ''
   const project = await prisma.project.findUnique({ where: { id: projectId } })
   if (!project) throw new Error('Проект не найден')
-  const strategy = await generateStrategyRecommendation(project.businessType, tone, narrativeStyle, goal)
+  const strategy = await generateStrategyRecommendation(project.businessType, audience, vibe, goal)
   await prisma.project.update({
     where: { id: projectId },
-    data: { tone, narrativeStyle, goal, strategyRecommendation: JSON.stringify(strategy) },
+    data: { tone: audience, narrativeStyle: vibe, goal, strategyRecommendation: JSON.stringify(strategy) },
   })
   redirect(`/project/${projectId}`)
 }
 
-// ─── Hypotheses ───────────────────────────────────────────────────────────────
+// ─── Channels ─────────────────────────────────────────────────────────────────
 
+export async function createChannelAction(formData: FormData) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const projectId = formData.get('projectId') as string
+  const name = formData.get('name') as string
+  if (!name) throw new Error('Укажи название канала')
+  const project = await prisma.project.findUnique({ where: { id: projectId, userId: user.id } })
+  if (!project) throw new Error('Проект не найден')
+  const channel = await prisma.channel.create({ data: { name, projectId } })
+  revalidatePath(`/project/${projectId}`)
+  return { channelId: channel.id }
+}
+
+// ─── Rubrics (formerly Hypotheses) ────────────────────────────────────────────
+
+export async function createRubricAction(formData: FormData) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const channelId = formData.get('channelId') as string
+  const title = formData.get('title') as string
+  const description = (formData.get('description') as string) || ''
+  await prisma.rubric.create({ data: { title, description, channelId } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+  return { success: true }
+}
+
+export async function updateRubricAction(rubricId: string, title: string, description: string) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  await prisma.rubric.update({ where: { id: rubricId }, data: { title, description } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+}
+
+export async function deleteRubricAction(rubricId: string) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const rubric = await prisma.rubric.findUnique({
+    where: { id: rubricId },
+    include: { channel: { include: { project: true } } },
+  })
+  if (!rubric || rubric.channel.project.userId !== user.id) throw new Error('Рубрика не найдена')
+  await prisma.rubric.delete({ where: { id: rubricId } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+}
+
+// Legacy alias (kept for old onboarding/board code)
 export async function createHypothesisAction(formData: FormData) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const platformId = formData.get('platformId') as string
+  const channelId = formData.get('platformId') as string
   const title = formData.get('title') as string
   const description = formData.get('description') as string
-  await prisma.hypothesis.create({ data: { title, description, platformId } })
+  await prisma.rubric.create({ data: { title, description, channelId } })
   revalidatePath('/project/[id]')
 }
 
-export async function generateHypothesesAction(platformId: string, businessType: string) {
+export async function generateHypothesesAction(channelId: string, businessType: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const platform = await prisma.platform.findUnique({
-    where: { id: platformId },
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
     include: { project: true },
   })
-  const project = platform?.project
+  const project = channel?.project
   return generateHypotheses(
     businessType,
     project?.tone ?? undefined,
@@ -213,142 +249,203 @@ export async function generateHypothesesAction(platformId: string, businessType:
   )
 }
 
-export async function saveHypothesesAction(platformId: string, selected: { title: string; description: string }[]) {
+export async function saveHypothesesAction(channelId: string, selected: { title: string; description: string }[]) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  await Promise.all(selected.map((h) => prisma.hypothesis.create({ data: { ...h, platformId } })))
+  await Promise.all(selected.map((h) => prisma.rubric.create({ data: { ...h, channelId } })))
   revalidatePath('/project/[id]')
 }
 
-export async function addHypothesisFromAI(platformId: string, title: string, description: string) {
+export async function addHypothesisFromAI(channelId: string, title: string, description: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  await prisma.hypothesis.create({ data: { title, description, platformId } })
+  await prisma.rubric.create({ data: { title, description, channelId } })
   revalidatePath('/project/[id]')
 }
 
-export async function improveHypothesisAction(hypothesisId: string) {
+export async function improveHypothesisAction(rubricId: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const hypothesis = await prisma.hypothesis.findUnique({
-    where: { id: hypothesisId },
-    include: { platform: { include: { project: true } } },
+  const rubric = await prisma.rubric.findUnique({
+    where: { id: rubricId },
+    include: { channel: { include: { project: true } } },
   })
-  if (!hypothesis) throw new Error('Гипотеза не найдена')
-  return improveHypothesis(hypothesis.title, hypothesis.description, hypothesis.platform.project.businessType)
+  if (!rubric) throw new Error('Рубрика не найдена')
+  return improveHypothesis(rubric.title, rubric.description, rubric.channel.project.businessType)
 }
 
-export async function applyImprovedHypothesis(hypothesisId: string, title: string, description: string) {
+export async function applyImprovedHypothesis(rubricId: string, title: string, description: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  await prisma.hypothesis.update({ where: { id: hypothesisId }, data: { title, description } })
+  await prisma.rubric.update({ where: { id: rubricId }, data: { title, description } })
   revalidatePath('/project/[id]')
 }
 
-// ─── Post Ideas ───────────────────────────────────────────────────────────────
+// ─── Posts (formerly Post Ideas) ──────────────────────────────────────────────
 
-export async function generatePostIdeasAction(hypothesisId: string) {
+export async function generatePostIdeasAction(rubricId: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const hypothesis = await prisma.hypothesis.findUnique({
-    where: { id: hypothesisId },
-    include: { platform: { include: { project: true } } },
+  const rubric = await prisma.rubric.findUnique({
+    where: { id: rubricId },
+    include: { channel: { include: { project: true } } },
   })
-  if (!hypothesis) throw new Error('Гипотеза не найдена')
-  await prisma.postIdea.deleteMany({ where: { hypothesisId, isUserCreated: false } })
-  const project = hypothesis.platform.project
+  if (!rubric) throw new Error('Рубрика не найдена')
+  await prisma.post.deleteMany({ where: { rubricId, isUserCreated: false } })
+  const project = rubric.channel.project
   const ideas = await generatePostIdeas(
-    hypothesis.title, hypothesis.description, project.businessType,
+    rubric.title, rubric.description, project.businessType,
     project.tone ?? undefined, project.narrativeStyle ?? undefined, project.goal ?? undefined,
   )
-  await Promise.all(ideas.map((idea) => prisma.postIdea.create({
+  await Promise.all(ideas.map((idea) => prisma.post.create({
     data: {
       title: idea.title, script: idea.script, caption: idea.caption, hashtags: idea.hashtags,
-      hypothesisId,
+      rubricId,
       recommendedPublishDate: idea.recommendedPublishDate ? new Date(idea.recommendedPublishDate) : null,
     }
   })))
-  revalidatePath(`/hypothesis/${hypothesisId}`)
+  revalidatePath(`/rubric/${rubricId}`)
 }
 
+export async function createPostAction(data: {
+  rubricId: string
+  title: string
+  postText?: string
+  caption?: string
+  hashtags?: string
+  scheduledDate?: string
+}) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const post = await prisma.post.create({
+    data: {
+      title: data.title,
+      script: data.postText || '',
+      caption: data.caption || '',
+      hashtags: data.hashtags || '',
+      postText: data.postText || '',
+      rubricId: data.rubricId,
+      isUserCreated: true,
+      status: data.scheduledDate ? 'SCHEDULED' : 'DRAFT',
+      scheduledPublishDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
+    },
+  })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+  return post
+}
+
+// Legacy alias
 export async function createPostIdeaAction(formData: FormData) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const hypothesisId = formData.get('hypothesisId') as string
+  const rubricId = formData.get('hypothesisId') as string
   const title = formData.get('title') as string
   const script = formData.get('script') as string
   const caption = (formData.get('caption') as string) || ''
   const hashtags = (formData.get('hashtags') as string) || ''
-  const post = await prisma.postIdea.create({
-    data: { title, script, caption, hashtags, hypothesisId, isUserCreated: true },
+  const post = await prisma.post.create({
+    data: { title, script, caption, hashtags, rubricId, isUserCreated: true },
   })
-  revalidatePath(`/hypothesis/${hypothesisId}`)
+  revalidatePath(`/rubric/${rubricId}`)
   return post
 }
 
-export async function improvePostIdeaAction(postIdeaId: string) {
+export async function updatePostAction(postId: string, data: {
+  title?: string
+  postText?: string
+  caption?: string
+  hashtags?: string
+  scheduledDate?: string | null
+  status?: string
+}) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const post = await prisma.postIdea.findUnique({
-    where: { id: postIdeaId },
-    include: { hypothesis: { include: { platform: { include: { project: true } } } } },
+  const updateData: Record<string, unknown> = {}
+  if (data.title !== undefined) updateData.title = data.title
+  if (data.postText !== undefined) { updateData.postText = data.postText; updateData.script = data.postText }
+  if (data.caption !== undefined) updateData.caption = data.caption
+  if (data.hashtags !== undefined) updateData.hashtags = data.hashtags
+  if (data.status !== undefined) {
+    updateData.status = data.status
+    updateData.posted = data.status === 'PUBLISHED'
+  }
+  if (data.scheduledDate !== undefined) {
+    updateData.scheduledPublishDate = data.scheduledDate ? new Date(data.scheduledDate) : null
+    if (data.scheduledDate && !data.status) updateData.status = 'SCHEDULED'
+  }
+  await prisma.post.update({ where: { id: postId }, data: updateData })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+  revalidatePath('/calendar')
+}
+
+export async function improvePostIdeaAction(postId: string) {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { rubric: { include: { channel: { include: { project: true } } } } },
   })
   if (!post) throw new Error('Пост не найден')
-  const project = post.hypothesis.platform.project
+  const project = post.rubric.channel.project
   return improvePostIdea(
     post.title, post.script, post.caption, post.hashtags,
-    post.hypothesis.title, project.businessType,
+    post.rubric.title, project.businessType,
     project.tone ?? undefined, project.narrativeStyle ?? undefined, project.goal ?? undefined,
   )
 }
 
-export async function applyImprovedPostIdea(postIdeaId: string, title: string, script: string, caption: string, hashtags: string) {
+export async function applyImprovedPostIdea(postId: string, title: string, script: string, caption: string, hashtags: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  await prisma.postIdea.update({ where: { id: postIdeaId }, data: { title, script, caption, hashtags } })
-  revalidatePath(`/hypothesis/[id]`)
+  await prisma.post.update({ where: { id: postId }, data: { title, script, caption, hashtags, postText: script } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
 }
 
-export async function updateScheduledDateAction(postIdeaId: string, date: string) {
+export async function updateScheduledDateAction(postId: string, date: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  await prisma.postIdea.update({
-    where: { id: postIdeaId },
-    data: { scheduledPublishDate: date ? new Date(date) : null },
+  await prisma.post.update({
+    where: { id: postId },
+    data: {
+      scheduledPublishDate: date ? new Date(date) : null,
+      status: date ? 'SCHEDULED' : 'DRAFT',
+    },
   })
-  revalidatePath(`/hypothesis/[id]`)
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+  revalidatePath('/calendar')
 }
 
-export async function markAsPostedAction(postIdeaId: string) {
+export async function markAsPostedAction(postId: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  await prisma.postIdea.update({ where: { id: postIdeaId }, data: { posted: true } })
-  revalidatePath(`/hypothesis/[id]`)
+  await prisma.post.update({ where: { id: postId }, data: { posted: true, status: 'PUBLISHED' } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
 }
 
 export async function saveResultAction(formData: FormData) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const postIdeaId = formData.get('postIdeaId') as string
+  const postId = (formData.get('postIdeaId') ?? formData.get('postId')) as string
   const views = parseInt(formData.get('views') as string) || 0
   const likes = parseInt(formData.get('likes') as string) || 0
   const comments = parseInt(formData.get('comments') as string) || 0
   const saves = parseInt(formData.get('saves') as string) || 0
   await prisma.postResult.upsert({
-    where: { postIdeaId },
+    where: { postId },
     update: { views, likes, comments, saves },
-    create: { postIdeaId, views, likes, comments, saves },
+    create: { postId, views, likes, comments, saves },
   })
-  revalidatePath(`/hypothesis/[id]`)
+  await prisma.post.update({ where: { id: postId }, data: { posted: true, status: 'PUBLISHED' } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
 }
 
-export async function extractMetricsAction(postIdeaId: string, base64Image: string) {
+export async function extractMetricsAction(postId: string, base64Image: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
   return extractMetricsFromScreenshot(base64Image)
 }
 
-// ─── Competitor Analysis ─────────────────────────────────────────────────────
+// ─── Competitor Analysis ──────────────────────────────────────────────────────
 
 export async function addCompetitorAction(formData: FormData) {
   const user = await getSession()
@@ -431,20 +528,20 @@ export async function analyzeCompetitorAction(competitorId: string) {
 export async function uploadPostMediaAction(formData: FormData) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const postIdeaId = formData.get('postIdeaId') as string
-  if (!postIdeaId) throw new Error('postIdeaId обязателен')
+  const postId = (formData.get('postIdeaId') ?? formData.get('postId')) as string
+  if (!postId) throw new Error('postId обязателен')
   const file = formData.get('file') as File | null
   if (!file || file.size === 0) throw new Error('Файл не выбран')
   if (file.size > 10 * 1024 * 1024) throw new Error('Максимальный размер — 10 МБ')
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
-  const filename = `${postIdeaId}_${Date.now()}.${ext}`
+  const filename = `${postId}_${Date.now()}.${ext}`
   const dir = join(process.cwd(), 'public', 'uploads', 'posts')
   await mkdir(dir, { recursive: true })
   const bytes = await file.arrayBuffer()
   await writeFile(join(dir, filename), Buffer.from(bytes))
   const url = `/uploads/posts/${filename}`
   const media = await prisma.postMedia.create({
-    data: { postIdeaId, url, filename: file.name, mimeType: file.type || 'application/octet-stream', size: file.size },
+    data: { postId, url, filename: file.name, mimeType: file.type || 'application/octet-stream', size: file.size },
   })
   revalidatePath('/calendar')
   return { ...media, createdAt: media.createdAt.toISOString() }
@@ -464,22 +561,28 @@ export async function deletePostMediaAction(mediaId: string) {
   revalidatePath('/calendar')
 }
 
-export async function analyzeHypothesisAction(hypothesisId: string) {
+// ─── Analysis ────────────────────────────────────────────────────────────────
+
+export async function analyzeHypothesisAction(rubricId: string) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
-  const hypothesis = await prisma.hypothesis.findUnique({
-    where: { id: hypothesisId },
-    include: { postIdeas: { include: { result: true } } },
+  const rubric = await prisma.rubric.findUnique({
+    where: { id: rubricId },
+    include: { posts: { include: { result: true } } },
   })
-  if (!hypothesis) throw new Error('Гипотеза не найдена')
-  const postsWithResults = hypothesis.postIdeas.filter((p) => p.result)
+  if (!rubric) throw new Error('Рубрика не найдена')
+  const postsWithResults = rubric.posts.filter((p) => p.result)
   if (postsWithResults.length === 0) throw new Error('Нет данных для анализа')
   return analyzeResults(
-    hypothesis.title,
+    rubric.title,
     postsWithResults.map((p) => ({
       postTitle: p.title,
       views: p.result!.views, likes: p.result!.likes,
       comments: p.result!.comments, saves: p.result!.saves,
     }))
   )
+}
+
+export async function analyzeRubricAction(rubricId: string) {
+  return analyzeHypothesisAction(rubricId)
 }
