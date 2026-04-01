@@ -119,14 +119,14 @@ export default function FullOnboarding() {
     projectName: '', name: '', email: '', password: '', confirm: '',
   })
 
-  const TOTAL = 6
+  const TOTAL = 5
 
   function update(field: keyof FormState, value: string) {
     setData(prev => ({ ...prev, [field]: value }))
   }
 
   function next() { setError(''); setStep(s => Math.min(s + 1, TOTAL)) }
-  function skip() { setError(''); setStep(5) }
+  function skip() { setError(''); setStep(4) }
   function back() { setError(''); setStep(s => Math.max(s - 1, 1)) }
 
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
@@ -144,7 +144,7 @@ export default function FullOnboarding() {
       fd.set('confirm', data.confirm)
       fd.set('skipRedirect', 'true')
       await signupAction(fd)
-      setStep(6)
+      setStep(5)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -364,34 +364,6 @@ export default function FullOnboarding() {
 
           {step === 4 && (
             <div className="animate-fade-up">
-              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={s.accent}>{tr.ob_step4Label}</p>
-              <h2 className="text-2xl mb-2" style={{ fontFamily: 'var(--font-display)', ...s.text }}>{tr.ob_step4Title}</h2>
-              <p className="text-sm mb-7" style={s.muted}>{tr.ob_step4Desc}</p>
-              <div className="space-y-3 mb-7">
-                {[
-                  { num: '01', title: tr.ob_h1Title, desc: tr.ob_h1Desc, bg: 'var(--accent-light)', fg: 'var(--accent)' },
-                  { num: '02', title: tr.ob_h2Title, desc: tr.ob_h2Desc, bg: '#F0FDF4', fg: 'var(--green)' },
-                  { num: '03', title: tr.ob_h3Title, desc: tr.ob_h3Desc, bg: '#FFF7ED', fg: 'var(--amber)' },
-                ].map(st => (
-                  <div key={st.num} className="flex gap-4 p-4 rounded-xl" style={s.subtle}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ background: st.bg, color: st.fg }}>{st.num}</div>
-                    <div>
-                      <p className="text-sm font-semibold mb-1" style={s.text}>{st.title}</p>
-                      <p className="text-xs leading-relaxed" style={s.secondary}>{st.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <button onClick={back} className="btn-secondary px-5 py-2.5">{tr.ob_back}</button>
-                <button onClick={next} className="btn-primary flex-1 py-2.5">{tr.ob_createAccount}</button>
-              </div>
-              <button onClick={skip} className="w-full text-center mt-3 text-xs" style={s.muted}>{tr.ob_skip}</button>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="animate-fade-up">
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={s.accent}>{tr.ob_step5Label}</p>
               <h2 className="text-2xl mb-1" style={{ fontFamily: 'var(--font-display)', ...s.text }}>{tr.ob_step5Title}</h2>
               <p className="text-sm mb-6" style={s.muted}>{tr.ob_step5Desc}</p>
@@ -425,7 +397,7 @@ export default function FullOnboarding() {
             </div>
           )}
 
-          {step === 6 && (
+          {step === 5 && (
             <div className="animate-fade-up">
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={s.accent}>{tr.ob_step6Label}</p>
               <h2 className="text-2xl mb-1" style={{ fontFamily: 'var(--font-display)', ...s.text }}>{tr.ob_step6Title}</h2>

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import FeedbackPopup from '@/components/FeedbackPopup'
+import QuickCreateModal from '@/components/QuickCreateModal'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getSession()
@@ -23,6 +24,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
   })
 
+  // Flatten for QuickCreateModal: project → channels → rubrics
+  const fabProjects = projects.map(p => ({
+    id: p.id,
+    name: p.name,
+    channels: p.channels.map(ch => ({
+      id: ch.id,
+      name: ch.name,
+      rubrics: ch.rubrics.map(r => ({ id: r.id, title: r.title, channelId: ch.id })),
+    })),
+  }))
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar projects={projects} userEmail={user.email} userName={user.name} userAvatar={user.avatarUrl} />
@@ -30,6 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {children}
       </div>
       <FeedbackPopup userEmail={user.email} />
+      <QuickCreateModal projects={fabProjects} />
     </div>
   )
 }

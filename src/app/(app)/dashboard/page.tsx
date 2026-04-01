@@ -6,6 +6,21 @@ import { createProjectAction } from '@/lib/actions'
 import { getT } from '@/lib/lang-server'
 import DeleteProjectButton from '@/components/DeleteProjectButton'
 
+const PLATFORM_COLORS: Record<string, { bg: string; color: string }> = {
+  instagram: { bg: '#FEE2E2', color: '#9D174D' },
+  tiktok:    { bg: '#F3F4F6', color: '#111827' },
+  youtube:   { bg: '#FEF2F2', color: '#991B1B' },
+  telegram:  { bg: '#EFF6FF', color: '#1D4ED8' },
+  vk:        { bg: '#EFF6FF', color: '#1E40AF' },
+  threads:   { bg: '#F3F4F6', color: '#374151' },
+}
+function getPlatformBg(name: string) {
+  return PLATFORM_COLORS[name.toLowerCase()]?.bg ?? '#F4F4F5'
+}
+function getPlatformColor(name: string) {
+  return PLATFORM_COLORS[name.toLowerCase()]?.color ?? '#71717A'
+}
+
 const BUSINESS_TYPES = [
   { value: 'coffee shop', labelKey: 'bt_coffee_shop' },
   { value: 'restaurant', labelKey: 'bt_restaurant' },
@@ -50,12 +65,19 @@ export default async function DashboardPage() {
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 18, color: 'var(--text)', letterSpacing: '-0.01em' }}>{tr.newProjectCard}</p>
             <form action={createProjectAction} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <input type="text" name="name" placeholder={tr.projectNamePlaceholder} required className="input" />
-              <select name="businessType" required className="input select">
-                <option value="">{tr.businessTypePlaceholder}</option>
+              <input
+                type="text"
+                name="businessType"
+                required
+                className="input"
+                placeholder={tr.businessTypePlaceholder}
+                list="business-types-list"
+              />
+              <datalist id="business-types-list">
                 {BUSINESS_TYPES.map(bt => (
-                  <option key={bt.value} value={bt.value}>{tr[bt.labelKey]}</option>
+                  <option key={bt.value} value={bt.value} />
                 ))}
-              </select>
+              </datalist>
               <button type="submit" className="btn-primary" style={{ width: '100%' }}>{tr.createProject}</button>
             </form>
           </div>
@@ -73,8 +95,18 @@ export default async function DashboardPage() {
                       <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 3, letterSpacing: '-0.01em' }}>{project.name}</p>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{project.businessType}</p>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="badge badge-default">Instagram</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {project.channels.length > 0 ? project.channels.slice(0, 3).map(ch => (
+                        <span key={ch.id} style={{
+                          fontSize: 10, fontWeight: 500, padding: '2px 8px',
+                          borderRadius: 99, background: getPlatformBg(ch.name),
+                          color: getPlatformColor(ch.name), whiteSpace: 'nowrap',
+                        }}>
+                          {ch.name}
+                        </span>
+                      )) : (
+                        <span className="badge badge-default" style={{ fontSize: 10 }}>Нет платформ</span>
+                      )}
                       <DeleteProjectButton projectId={project.id} />
                     </div>
                   </div>

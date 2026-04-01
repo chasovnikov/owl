@@ -5,6 +5,10 @@ import { redirect } from 'next/navigation'
 import { writeFile, unlink, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { prisma } from '@/lib/prisma'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse')
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const mammoth = require('mammoth')
 import { createSession, clearSession, getSession, hashPassword } from '@/lib/auth'
 import {
   generateHypotheses, generatePostIdeas, analyzeResults,
@@ -314,9 +318,11 @@ export async function createPostAction(data: {
   caption?: string
   hashtags?: string
   scheduledDate?: string
+  status?: string
 }) {
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
+  const derivedStatus = data.status ?? (data.scheduledDate ? 'SCHEDULED' : 'DRAFT')
   const post = await prisma.post.create({
     data: {
       title: data.title,
@@ -326,7 +332,8 @@ export async function createPostAction(data: {
       postText: data.postText || '',
       rubricId: data.rubricId,
       isUserCreated: true,
-      status: data.scheduledDate ? 'SCHEDULED' : 'DRAFT',
+      status: derivedStatus,
+      posted: derivedStatus === 'PUBLISHED',
       scheduledPublishDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
     },
   })
@@ -585,4 +592,35 @@ export async function analyzeHypothesisAction(rubricId: string) {
 
 export async function analyzeRubricAction(rubricId: string) {
   return analyzeHypothesisAction(rubricId)
+}
+
+// ─── Strategy File Parsing ────────────────────────────────────────────────────
+
+export async function parseStrategyFileAction(formData: FormData): Promise<{ text: string }> {
+  const user = await getSession()
+  if (!user) throw new Error('Не авторизован')
+
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) throw new Error('Файл не выбран')
+  if (file.size > 10 * 1024 * 1024) throw new Error('Максимальный размер — 10 МБ')
+
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  const bytes = await file.arrayBuffer()
+  const buffer = Buffer.from(bytes)
+
+  let text = ''
+
+  if (ext === 'txt') {
+    text = buffer.toString('utf-8')
+  } else if (ext === 'pdf') {
+    const result = await pdfParse(buffer)
+    text = result.text ?? ''
+  } else if (ext === 'docx' || ext === 'doc') {
+    const result = await mammoth.extractRawText({ buffer })
+    text = result.value ?? ''
+  } else {
+    throw new Error('Поддерживаются форматы: .txt, .pdf, .doc, .docx')
+  }
+
+  return { text: text.trim() }
 }
