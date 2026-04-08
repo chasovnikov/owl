@@ -112,40 +112,38 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
             Календарь
           </h1>
           <div style={{ display: 'flex', gap: 8 }}>
-            {/* Filters */}
+            {/* Filters — all visible, downstream disabled until parent selected */}
             <select
               value={filterProject}
               onChange={e => { setFilterProject(e.target.value); setFilterChannel('all'); setFilterRubric('all') }}
               className="input"
-              style={{ fontSize: 12, cursor: 'pointer' }}
+              style={{ fontSize: 12, cursor: 'pointer', width: 'auto' }}
             >
               <option value="all">Все проекты</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
 
-            {filterProject !== 'all' && (
-              <select
-                value={filterChannel}
-                onChange={e => { setFilterChannel(e.target.value); setFilterRubric('all') }}
-                className="input"
-                style={{ fontSize: 12, cursor: 'pointer' }}
-              >
-                <option value="all">Все каналы</option>
-                {availableChannels.map(ch => <option key={ch.id} value={ch.id}>{ch.name}</option>)}
-              </select>
-            )}
+            <select
+              value={filterProject === 'all' ? 'all' : filterChannel}
+              onChange={e => { setFilterChannel(e.target.value); setFilterRubric('all') }}
+              disabled={filterProject === 'all'}
+              className="input"
+              style={{ fontSize: 12, cursor: filterProject === 'all' ? 'not-allowed' : 'pointer', opacity: filterProject === 'all' ? 0.4 : 1, width: 'auto' }}
+            >
+              <option value="all">Все каналы</option>
+              {availableChannels.map(ch => <option key={ch.id} value={ch.id}>{ch.name}</option>)}
+            </select>
 
-            {filterChannel !== 'all' && (
-              <select
-                value={filterRubric}
-                onChange={e => setFilterRubric(e.target.value)}
-                className="input"
-                style={{ fontSize: 12, cursor: 'pointer' }}
-              >
-                <option value="all">Все рубрики</option>
-                {availableRubrics.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
-              </select>
-            )}
+            <select
+              value={filterChannel === 'all' ? 'all' : filterRubric}
+              onChange={e => setFilterRubric(e.target.value)}
+              disabled={filterChannel === 'all'}
+              className="input"
+              style={{ fontSize: 12, cursor: filterChannel === 'all' ? 'not-allowed' : 'pointer', opacity: filterChannel === 'all' ? 0.4 : 1, width: 'auto' }}
+            >
+              <option value="all">Все рубрики</option>
+              {availableRubrics.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
+            </select>
           </div>
         </div>
 
