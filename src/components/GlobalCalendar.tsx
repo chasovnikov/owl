@@ -52,6 +52,8 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
   const [filterProject, setFilterProject] = useState<string>('all')
   const [filterChannel, setFilterChannel] = useState<string>('all')
   const [filterRubric, setFilterRubric] = useState<string>('all')
+  const today = new Date().toISOString().split('T')[0]
+  const [selectedDay, setSelectedDay] = useState<string>(today)
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -107,11 +109,11 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div className="page-content">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em' }}>
             Календарь
           </h1>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="calendar-filters" style={{ display: 'flex', gap: 8 }}>
             {/* Filters — all visible, downstream disabled until parent selected */}
             <select
               value={filterProject}
@@ -180,8 +182,8 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
           </div>
         </div>
 
-        {/* Calendar grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', border: '1px solid var(--border-color)', borderRadius: 12, overflow: 'hidden' }}>
+        {/* ── Desktop calendar grid ── */}
+        <div className="calendar-desktop-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', border: '1px solid var(--border-color)', borderRadius: 12, overflow: 'hidden' }}>
           {dayNames.map(d => (
             <div key={d} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center', borderBottom: '1px solid var(--border-color)', background: '#FAFAFA' }}>
               {d}
@@ -191,7 +193,7 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
             const isCurrentMonth = day.getMonth() === month
             const key = day.toISOString().split('T')[0]
             const posts = postsByDate[key] ?? []
-            const isToday = key === new Date().toISOString().split('T')[0]
+            const isToday = key === today
 
             return (
               <div
@@ -205,47 +207,116 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
                   opacity: isCurrentMonth ? 1 : 0.3,
                 }}
               >
-                <span style={{
-                  fontSize: 11, fontWeight: isToday ? 700 : 400,
-                  color: isToday ? '#D97706' : 'var(--text-muted)',
-                  display: 'block', marginBottom: 4, textAlign: 'right',
-                }}>
+                <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 400, color: isToday ? '#D97706' : 'var(--text-muted)', display: 'block', marginBottom: 4, textAlign: 'right' }}>
                   {day.getDate()}.{String(day.getMonth() + 1).padStart(2, '0')}
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {posts.slice(0, 3).map(post => {
                     const color = projectColorMap[post.projectId] ?? '#6366F1'
                     return (
-                      <Link
-                        key={post.id}
-                        href={`/project/${post.projectId}/channel/${post.channelId}`}
-                        style={{
-                          fontSize: 10, padding: '2px 5px',
-                          background: `${color}18`,
-                          color: color,
-                          borderRadius: 4,
-                          textDecoration: 'none',
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                          display: 'block',
-                          borderLeft: `2px solid ${color}`,
-                        }}
+                      <Link key={post.id} href={`/project/${post.projectId}/channel/${post.channelId}`}
+                        style={{ fontSize: 10, padding: '2px 5px', background: `${color}18`, color, borderRadius: 4, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', borderLeft: `2px solid ${color}` }}
                         title={`${post.projectName} · ${post.channelName} · ${post.rubricTitle}\n${post.title}`}
-                      >
-                        {post.title}
-                      </Link>
+                      >{post.title}</Link>
                     )
                   })}
-                  {posts.length > 3 && (
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>+{posts.length - 3} ещё</span>
-                  )}
+                  {posts.length > 3 && <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>+{posts.length - 3} ещё</span>}
                 </div>
               </div>
             )
           })}
         </div>
 
-        {/* Summary */}
-        <div style={{ marginTop: 20, display: 'flex', gap: 24, fontSize: 12, color: 'var(--text-muted)' }}>
+        {/* ── Mobile: compact grid + agenda ── */}
+        <div className="calendar-mobile">
+          {/* Compact month grid — dots only */}
+          <div style={{ background: 'var(--surface)', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--border-color)', marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+              {dayNames.map(d => (
+                <div key={d} style={{ padding: '8px 0', fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center' }}>{d}</div>
+              ))}
+              {days.map((day, i) => {
+                const isCurrentMonth = day.getMonth() === month
+                const key = day.toISOString().split('T')[0]
+                const posts = postsByDate[key] ?? []
+                const isToday = key === today
+                const isSelected = key === selectedDay
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() => isCurrentMonth && setSelectedDay(key)}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      padding: '4px 0 6px',
+                      opacity: isCurrentMonth ? 1 : 0.25,
+                      cursor: isCurrentMonth ? 'pointer' : 'default',
+                    }}
+                  >
+                    <div style={{
+                      width: 30, height: 30, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: isSelected ? 'var(--accent)' : isToday ? '#FFFBF0' : 'transparent',
+                      fontSize: 13, fontWeight: isToday || isSelected ? 700 : 400,
+                      color: isSelected ? '#fff' : isToday ? '#D97706' : 'var(--text)',
+                    }}>
+                      {day.getDate()}
+                    </div>
+                    {/* Event dots */}
+                    <div style={{ display: 'flex', gap: 2, marginTop: 2, minHeight: 6 }}>
+                      {posts.slice(0, 3).map(post => (
+                        <div key={post.id} style={{ width: 4, height: 4, borderRadius: '50%', background: projectColorMap[post.projectId] ?? '#6366F1' }} />
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Agenda: posts for selected day */}
+          <div>
+            {(() => {
+              const selectedDate = new Date(selectedDay + 'T12:00:00')
+              const dayLabel = selectedDay === today ? 'Сегодня' : selectedDate.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
+              const posts = postsByDate[selectedDay] ?? []
+              return (
+                <>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10, textTransform: selectedDay === today ? 'none' : 'capitalize' }}>
+                    {dayLabel}
+                  </p>
+                  {posts.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--text-muted)', fontSize: 13 }}>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
+                      Постов нет
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {posts.map(post => {
+                        const color = projectColorMap[post.projectId] ?? '#6366F1'
+                        const sc = STATUS_CONFIG[post.status] ?? STATUS_CONFIG.DRAFT
+                        return (
+                          <Link key={post.id} href={`/project/${post.projectId}/channel/${post.channelId}`} style={{ textDecoration: 'none' }}>
+                            <div className="card" style={{ padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'flex-start', borderLeft: `3px solid ${color}` }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</p>
+                                <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{post.projectName} · {post.channelName}</p>
+                              </div>
+                              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: sc.bg, color: sc.color, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>{sc.label}</span>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        </div>
+
+        {/* Summary (desktop only) */}
+        <div className="calendar-desktop-grid" style={{ marginTop: 20, display: 'flex', gap: 24, fontSize: 12, color: 'var(--text-muted)' }}>
           <span>Всего постов в месяце: <strong style={{ color: 'var(--text)' }}>{allPosts.filter(p => {
             const d = p.scheduledPublishDate ?? p.recommendedPublishDate
             if (!d) return false
@@ -259,11 +330,7 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
               const date = new Date(d)
               return date.getFullYear() === year && date.getMonth() === month && p.status === key
             }).length
-            return count > 0 ? (
-              <span key={key}>
-                <span style={{ color: s.color, fontWeight: 600 }}>{s.label}: {count}</span>
-              </span>
-            ) : null
+            return count > 0 ? <span key={key}><span style={{ color: s.color, fontWeight: 600 }}>{s.label}: {count}</span></span> : null
           })}
         </div>
       </div>
