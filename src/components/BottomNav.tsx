@@ -18,15 +18,17 @@ export default function BottomNav({
 }) {
   const pathname = usePathname()
 
-  const isProjects = pathname === '/dashboard' || pathname.startsWith('/project/')
-  const isCalendar = pathname === '/calendar'
-  const isSettings = pathname === '/settings'
+  const isProjects  = pathname === '/dashboard' || pathname.startsWith('/project/')
+  const isCalendar  = pathname === '/calendar'
+  const isAnalytics = pathname === '/analytics'
+  const isSettings  = pathname === '/settings'
 
   return (
     <nav className="bottom-nav">
+
       {/* Проекты */}
       <Link href="/dashboard" className={`bottom-nav-item${isProjects ? ' active' : ''}`}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.7"/>
           <rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.7"/>
           <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.7"/>
@@ -35,9 +37,28 @@ export default function BottomNav({
         <span>Проекты</span>
       </Link>
 
+      {/* Аналитика */}
+      <Link href="/analytics" className={`bottom-nav-item${isAnalytics ? ' active' : ''}`}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="13" width="4" height="8" rx="1" stroke="currentColor" strokeWidth="1.7"/>
+          <rect x="10" y="8" width="4" height="13" rx="1" stroke="currentColor" strokeWidth="1.7"/>
+          <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.7"/>
+        </svg>
+        <span>Аналитика</span>
+      </Link>
+
+      {/* FAB — создать */}
+      <div className="bottom-nav-fab-slot">
+        <button onClick={openCreate} className="bottom-nav-fab" aria-label="Создать">
+          <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
+            <path d="M13 5v16M5 13h16" stroke="white" strokeWidth="2.4" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+
       {/* Календарь */}
       <Link href="/calendar" className={`bottom-nav-item${isCalendar ? ' active' : ''}`}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="4" width="18" height="17" rx="3.5" stroke="currentColor" strokeWidth="1.7"/>
           <path d="M3 10h18" stroke="currentColor" strokeWidth="1.7"/>
           <path d="M8 2v3M16 2v3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
@@ -48,25 +69,6 @@ export default function BottomNav({
         <span>Календарь</span>
       </Link>
 
-      {/* FAB — центральная кнопка создания */}
-      <div className="bottom-nav-fab-slot">
-        <button onClick={openCreate} className="bottom-nav-fab" aria-label="Создать">
-          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-            <path d="M13 5v16M5 13h16" stroke="white" strokeWidth="2.4" strokeLinecap="round"/>
-          </svg>
-        </button>
-      </div>
-
-      {/* Аналитика */}
-      <Link href="/dashboard" className="bottom-nav-item">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="13" width="4" height="8" rx="1" stroke="currentColor" strokeWidth="1.7"/>
-          <rect x="10" y="8" width="4" height="13" rx="1" stroke="currentColor" strokeWidth="1.7"/>
-          <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.7"/>
-        </svg>
-        <span>Аналитика</span>
-      </Link>
-
       {/* Профиль */}
       <Link href="/settings" className={`bottom-nav-item${isSettings ? ' active' : ''}`}>
         {userAvatar ? (
@@ -74,16 +76,16 @@ export default function BottomNav({
             src={userAvatar}
             alt=""
             style={{
-              width: 26, height: 26, borderRadius: '50%', objectFit: 'cover',
+              width: 24, height: 24, borderRadius: '50%', objectFit: 'cover',
               border: isSettings ? '2px solid var(--accent)' : '2px solid transparent',
             }}
           />
         ) : (
           <div style={{
-            width: 26, height: 26, borderRadius: '50%',
+            width: 24, height: 24, borderRadius: '50%',
             background: isSettings ? 'var(--accent-gradient)' : 'var(--bg-subtle)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, fontWeight: 700,
+            fontSize: 10, fontWeight: 700,
             color: isSettings ? '#fff' : 'var(--text-muted)',
             border: isSettings ? '2px solid var(--accent)' : '2px solid transparent',
           }}>
@@ -92,6 +94,7 @@ export default function BottomNav({
         )}
         <span>Профиль</span>
       </Link>
+
     </nav>
   )
 }

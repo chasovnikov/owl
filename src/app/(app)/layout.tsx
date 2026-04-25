@@ -39,11 +39,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const userInitials = (user.name || user.email)[0].toUpperCase()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <div className="sidebar-desktop">
         <Sidebar projects={projects} userEmail={user.email} userName={user.name} userAvatar={user.avatarUrl} />
       </div>
-      <div className="main-content" style={{ flex: 1, minWidth: 0, overflowX: 'hidden' }}>
+      <div className="main-content" style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
         {children}
       </div>
       <FeedbackPopup userEmail={user.email} />
