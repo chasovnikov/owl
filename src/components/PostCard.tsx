@@ -15,6 +15,16 @@ interface Post {
   result: PostResult | null
 }
 
+function Spinner({ size = 12 }: { size?: number }) {
+  return (
+    <span style={{
+      width: size, height: size,
+      border: `1.5px solid var(--border-md)`, borderTopColor: 'var(--accent)',
+      borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block', flexShrink: 0,
+    }} />
+  )
+}
+
 export default function PostCard({ post, index }: { post: Post; index: number }) {
   const { lang } = useLang()
   const tr = translations[lang]
@@ -131,25 +141,27 @@ export default function PostCard({ post, index }: { post: Post; index: number })
   ]
 
   return (
-    <div className="card animate-fade-up" style={{ padding: 20, animationDelay: `${index * 40}ms`, opacity: 0 }}>
+    <div className={`card anim-slide-up d${Math.min(index, 8)}`} style={{ padding: 20 }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>#{index + 1}</span>
+          <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-3)', letterSpacing: '0.04em' }}>#{index + 1}</span>
           {post.isUserCreated && <span className="badge badge-default">{tr.mine}</span>}
-          {localPosted ? <span className="badge badge-green">{tr.published}</span> : <span className="badge badge-default">{tr.draft}</span>}
+          {localPosted
+            ? <span className="badge badge-green">{tr.published}</span>
+            : <span className="badge badge-default">{tr.draft}</span>}
           {localResult && <span className="badge badge-primary">{tr.hasData}</span>}
         </div>
       </div>
 
       <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 14, lineHeight: 1.4, letterSpacing: '-0.01em' }}>{localTitle}</p>
 
-      {/* Metrics */}
+      {/* Metrics grid */}
       {localResult && (
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
-          padding: '12px 14px', borderRadius: 'var(--radius-sm)',
-          background: 'var(--bg)', border: '1px solid var(--border-color)',
+          padding: '12px 14px', borderRadius: 'var(--r-sm)',
+          background: 'var(--bg)', border: '1px solid var(--border)',
           marginBottom: 14,
         }}>
           {[
@@ -160,7 +172,7 @@ export default function PostCard({ post, index }: { post: Post; index: number })
           ].map(m => (
             <div key={m.label} style={{ textAlign: 'center' }}>
               <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>{m.value.toLocaleString()}</p>
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{m.label}</p>
+              <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{m.label}</p>
             </div>
           ))}
         </div>
@@ -174,18 +186,19 @@ export default function PostCard({ post, index }: { post: Post; index: number })
           </span>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{tr.dateLabel}</span>
-          <input type="date" value={scheduledDate} onChange={handleDateChange} className="input"
-            style={{ height: 30, fontSize: 11, padding: '0 10px', width: 'auto', borderRadius: 'var(--radius-xs)' }} />
+          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{tr.dateLabel}</span>
+          <input
+            type="date"
+            value={scheduledDate}
+            onChange={handleDateChange}
+            className="inp"
+            style={{ height: 28, fontSize: 11, padding: '0 10px', width: 'auto', borderRadius: 'var(--r-xs)' }}
+          />
         </div>
         {publishDate && (
-          <button onClick={handleDownloadICS} style={{
-            fontSize: 11, color: 'var(--text-secondary)',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            transition: 'color 0.15s',
-          }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+          <button
+            onClick={handleDownloadICS}
+            className="btn btn-ghost btn-xs"
           >
             {tr.saveToCalendar}
           </button>
@@ -193,40 +206,44 @@ export default function PostCard({ post, index }: { post: Post; index: number })
       </div>
 
       {/* Expand toggle */}
-      <button onClick={() => setExpanded(!expanded)} className="btn-ghost"
-        style={{ height: 28, fontSize: 11, padding: '0 8px', marginBottom: 10 }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="btn btn-ghost btn-xs"
+        style={{ marginBottom: 10 }}
+      >
         {expanded ? tr.hide : tr.scriptCaption}
       </button>
 
+      {/* Expanded script/caption */}
       {expanded && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }} className="anim-fade-in">
           {[{ label: tr.script, content: localScript }, { label: tr.caption, content: localCaption }].map(s => (
             <div key={s.label}>
               <p className="section-label" style={{ marginBottom: 7 }}>{s.label}</p>
               <p style={{
-                fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7,
-                padding: '10px 12px', borderRadius: 'var(--radius-sm)',
-                background: 'var(--bg)', border: '1px solid var(--border-color)',
+                fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7,
+                padding: '10px 12px', borderRadius: 'var(--r-sm)',
+                background: 'var(--bg)', border: '1px solid var(--border)',
               }}>{s.content}</p>
             </div>
           ))}
           <div>
             <p className="section-label" style={{ marginBottom: 7 }}>{tr.hashtags}</p>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{localHashtags}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-2)' }}>{localHashtags}</p>
           </div>
         </div>
       )}
 
       {/* AI improve result */}
       {improveResult && (
-        <div className="ai-block animate-fade-up" style={{ padding: 14, marginBottom: 12 }}>
+        <div className="ai-block anim-fade-in" style={{ padding: 14, marginBottom: 12, borderRadius: 'var(--r-sm)' }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', marginBottom: 10, letterSpacing: '0.03em', textTransform: 'uppercase' }}>{tr.aiImprovedPost}</p>
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--text)', letterSpacing: '-0.01em' }}>{improveResult.improvedTitle}</p>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 6 }}>{improveResult.improvedCaption}</p>
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>{improveResult.improvedHashtags}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 6 }}>{improveResult.improvedCaption}</p>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 10 }}>{improveResult.improvedHashtags}</p>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={handleApplyImproved} className="btn-primary" style={{ height: 30, fontSize: 11, padding: '0 14px' }}>{tr.apply}</button>
-            <button onClick={() => setImproveResult(null)} className="btn-secondary" style={{ height: 30, fontSize: 11, padding: '0 12px' }}>{tr.dismiss}</button>
+            <button onClick={handleApplyImproved} className="btn btn-primary btn-xs">{tr.apply}</button>
+            <button onClick={() => setImproveResult(null)} className="btn btn-secondary btn-xs">{tr.dismiss}</button>
           </div>
         </div>
       )}
@@ -235,20 +252,22 @@ export default function PostCard({ post, index }: { post: Post; index: number })
       <div className="separator" style={{ margin: '12px 0' }} />
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {!localPosted && (
-          <button onClick={handleMarkPosted} disabled={isPosting} className="btn-secondary" style={{ height: 30, fontSize: 11, padding: '0 14px' }}>
-            {isPosting ? tr.marking : tr.markPublished}
+          <button onClick={handleMarkPosted} disabled={isPosting} className="btn btn-secondary btn-xs">
+            {isPosting ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Spinner size={10} />{tr.marking}</span> : tr.markPublished}
           </button>
         )}
-        <button onClick={handleImprove} disabled={isImproving} className="btn-ghost" style={{ height: 30, fontSize: 11 }}>
-          {isImproving ? tr.improving : tr.improveWithAi}
+        <button onClick={handleImprove} disabled={isImproving} className="btn btn-ghost btn-xs">
+          {isImproving
+            ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Spinner size={10} />{tr.improving}</span>
+            : <span>✦ {tr.improveWithAi}</span>}
         </button>
         {localPosted && (
           <>
-            <label className="btn-secondary" style={{ height: 30, fontSize: 11, cursor: 'pointer', padding: '0 14px' }}>
-              {isExtracting ? tr.reading : tr.screenshot}
+            <label className="btn btn-secondary btn-xs" style={{ cursor: 'pointer' }}>
+              {isExtracting ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Spinner size={10} />{tr.reading}</span> : tr.screenshot}
               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleScreenshot} disabled={isExtracting} />
             </label>
-            <button onClick={() => setShowResultForm(!showResultForm)} className="btn-secondary" style={{ height: 30, fontSize: 11, padding: '0 14px' }}>
+            <button onClick={() => setShowResultForm(!showResultForm)} className="btn btn-secondary btn-xs">
               {localResult ? tr.editMetrics : tr.addMetrics}
             </button>
           </>
@@ -259,9 +278,9 @@ export default function PostCard({ post, index }: { post: Post; index: number })
 
       {/* Results form */}
       {showResultForm && (
-        <form onSubmit={handleSaveResult} className="animate-fade-up" style={{
-          marginTop: 14, padding: 14, borderRadius: 'var(--radius-sm)',
-          background: 'var(--bg)', border: '1px solid var(--border-color)',
+        <form onSubmit={handleSaveResult} className="anim-fade-in" style={{
+          marginTop: 14, padding: 14, borderRadius: 'var(--r-sm)',
+          background: 'var(--bg)', border: '1px solid var(--border)',
         }}>
           <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 12, color: 'var(--text)' }}>
             {tr.metricsTitle} {extractedMetrics ? `(${tr.detectedByAi})` : ''}
@@ -270,15 +289,22 @@ export default function PostCard({ post, index }: { post: Post; index: number })
             {metricFields.map(f => (
               <div key={f.name}>
                 <label className="section-label" style={{ display: 'block', marginBottom: 5 }}>{f.label}</label>
-                <input type="number" name={f.name} min="0"
+                <input
+                  type="number"
+                  name={f.name}
+                  min="0"
                   defaultValue={extractedMetrics?.[f.name as keyof PostResult] ?? localResult?.[f.name as keyof PostResult] ?? 0}
-                  className="input" style={{ height: 34, fontSize: 13 }} />
+                  className="inp"
+                  style={{ height: 34, fontSize: 13 }}
+                />
               </div>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <button type="submit" disabled={isSaving} className="btn-primary" style={{ height: 32, fontSize: 12 }}>{isSaving ? tr.saving : tr.save}</button>
-            <button type="button" onClick={() => setShowResultForm(false)} className="btn-secondary" style={{ height: 32, fontSize: 12 }}>{tr.cancel}</button>
+            <button type="submit" disabled={isSaving} className="btn btn-primary btn-sm">
+              {isSaving ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Spinner />{tr.saving}</span> : tr.save}
+            </button>
+            <button type="button" onClick={() => setShowResultForm(false)} className="btn btn-secondary btn-sm">{tr.cancel}</button>
           </div>
         </form>
       )}

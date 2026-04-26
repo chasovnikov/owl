@@ -27,6 +27,7 @@ model Project {
   narrativeStyle         String?
   goal                   String?
   strategyRecommendation String?
+  manualStrategy         String?
   createdAt              DateTime     @default(now())
   userId                 String
   user                   User         @relation(fields: [userId], references: [id])
@@ -95,6 +96,7 @@ model Post {
   script                 String
   caption                String
   hashtags               String
+  platform               String      @default("Instagram")
   postText               String?     // основной текст поста
   status                 String      @default("DRAFT")
   posted                 Boolean     @default(false)

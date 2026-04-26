@@ -10,7 +10,7 @@ interface Props {
   stats: { projects: number; hypotheses: number; posts: number; results: number }
 }
 
-type Section = 'profile' | 'preferences' | 'security' | 'stats' | 'danger'
+type Section = 'profile' | 'preferences' | 'security' | 'stats' | 'danger' | '__none__'
 
 export default function SettingsClient({ user, stats }: Props) {
   const { lang, setLang } = useLang()
@@ -107,11 +107,195 @@ export default function SettingsClient({ user, stats }: Props) {
     fontSize: 12, color: 'var(--text-muted)', marginTop: 2,
   }
 
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 32 }}>
+  const SECTION_ICONS: Partial<Record<Section, React.ReactNode>> = {
+    profile: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.4"/><path d="M2.5 13.5c0-2.485 2.462-4.5 5.5-4.5s5.5 2.015 5.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+    preferences: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.4"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.4"/></svg>,
+    security: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="7" width="9" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+    stats: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="9" width="3" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/><rect x="6.5" y="5" width="3" height="9" rx="1" stroke="currentColor" strokeWidth="1.4"/><rect x="11" y="2" width="3" height="12" rx="1" stroke="currentColor" strokeWidth="1.4"/></svg>,
+    danger: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 13H2L8 2Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 6v3M8 11v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  }
 
-      {/* Sidebar nav */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+  return (
+    <div className="settings-container">
+
+      {/* ═══ MOBILE PROFILE PAGE (Airbnb-style) ═══ */}
+      <div className="settings-mobile-profile">
+
+        {/* Page title */}
+        <h1 className="mob-page-title">Профиль</h1>
+
+        {/* Profile row */}
+        <button className="mob-profile-row" onClick={() => setActive(active === 'profile' ? '__none__' as Section : 'profile')}>
+          <div className="mob-avatar">
+            {avatarUrl
+              ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>{(user.name || user.email)[0].toUpperCase()}</span>
+            }
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{user.name || user.email}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Редактировать профиль</p>
+          </div>
+          <svg width="8" height="14" viewBox="0 0 8 14" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+            <path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <div className="mob-divider" />
+
+        {/* Profile edit form (inline, expandable) */}
+        {active === 'profile' && (
+          <div className="mob-expanded-content">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', background: avatarUrl ? 'transparent' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, position: 'relative', border: '2px solid var(--border-color)' }}
+              >
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>{(user.name || user.email)[0].toUpperCase()}</span>
+                }
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: avatarStatus === 'uploading' ? 1 : 0, transition: 'opacity 0.15s' }}>
+                  <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                </div>
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} className="btn-secondary" style={{ fontSize: 13 }} disabled={avatarStatus === 'uploading'}>
+                {avatarStatus === 'uploading' ? tr.settingsUploading : tr.settingsUploadPhoto}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div><label style={label}>{tr.settingsName}</label><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder={tr.settingsNamePlaceholder} style={{ marginTop: 6 }} /></div>
+              <div><label style={label}>{tr.settingsEmail}</label><input className="input" value={user.email} disabled style={{ opacity: 0.5, cursor: 'not-allowed', marginTop: 6 }} /></div>
+              <button onClick={handleSaveProfile} disabled={profileStatus === 'saving'} className="btn-primary" style={{ width: '100%' }}>
+                {profileStatus === 'saving' ? tr.settingsSaving : profileStatus === 'saved' ? tr.settingsSaved : tr.settingsSave}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stats strip */}
+        <div className="mob-stats-strip">
+          {[
+            { value: stats.projects, label: tr.settingsStatsProjects },
+            { value: stats.hypotheses, label: tr.settingsStatsHypotheses },
+            { value: stats.posts, label: tr.settingsStatsPosts },
+          ].map(s => (
+            <div key={s.label} className="mob-stat-item">
+              <span className="mob-stat-value">{s.value}</span>
+              <span className="mob-stat-label">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══ MOBILE SETTINGS LIST ═══ */}
+      <div className="settings-mobile-sections">
+
+        <h2 className="mob-section-title">Настройки</h2>
+
+        <div className="mob-list">
+          {/* Preferences */}
+          <button className="mob-list-row" onClick={() => setActive(active === 'preferences' ? '__none__' as Section : 'preferences')}>
+            <svg className="mob-list-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5"/></svg>
+            <span className="mob-list-label">{tr.settingsPreferences}</span>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none" className="mob-list-chevron"><path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          {active === 'preferences' && (
+            <div className="mob-expanded-content">
+              <label style={label}>{tr.settingsLanguage}</label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                {(['ru', 'en'] as const).map(l => (
+                  <button key={l} onClick={() => setLang(l)} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer', border: lang === l ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: lang === l ? 'var(--accent-light)' : 'var(--surface)', color: lang === l ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                    {l === 'ru' ? '🇷🇺  Русский' : '🇬🇧  English'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="mob-row-divider" />
+
+          {/* Security */}
+          <button className="mob-list-row" onClick={() => setActive(active === 'security' ? '__none__' as Section : 'security')}>
+            <svg className="mob-list-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M7 9V7a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            <span className="mob-list-label">{tr.settingsSecurity}</span>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none" className="mob-list-chevron"><path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          {active === 'security' && (
+            <div className="mob-expanded-content">
+              <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {user.hasPassword && <div><label style={label}>{tr.settingsCurrentPassword}</label><input type="password" className="input" value={pwd.current} onChange={e => setPwd(p => ({ ...p, current: e.target.value }))} required style={{ marginTop: 6 }} /></div>}
+                <div><label style={label}>{tr.settingsNewPassword}</label><input type="password" className="input" value={pwd.next} minLength={8} onChange={e => setPwd(p => ({ ...p, next: e.target.value }))} required style={{ marginTop: 6 }} /></div>
+                <div><label style={label}>{tr.settingsConfirmPassword}</label><input type="password" className="input" value={pwd.confirm} onChange={e => setPwd(p => ({ ...p, confirm: e.target.value }))} required style={{ marginTop: 6 }} /></div>
+                {pwdStatus === 'error' && pwdError && <div style={{ fontSize: 12, color: 'var(--red)', padding: '8px 12px', background: 'var(--red-light)', borderRadius: 6 }}>{pwdError}</div>}
+                <button type="submit" disabled={pwdStatus === 'saving'} className="btn-primary" style={{ width: '100%' }}>
+                  {pwdStatus === 'saving' ? tr.settingsChangingPassword : pwdStatus === 'saved' ? tr.settingsPasswordChanged : tr.settingsChangePassword}
+                </button>
+              </form>
+            </div>
+          )}
+          <div className="mob-row-divider" />
+
+          {/* Stats */}
+          <button className="mob-list-row" onClick={() => setActive(active === 'stats' ? '__none__' as Section : 'stats')}>
+            <svg className="mob-list-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="12" width="4" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="8" y="7" width="4" height="11" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="13" y="3" width="4" height="15" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>
+            <span className="mob-list-label">{tr.settingsStats}</span>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none" className="mob-list-chevron"><path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          {active === 'stats' && (
+            <div className="mob-expanded-content">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[{ label: tr.settingsStatsProjects, value: stats.projects }, { label: tr.settingsStatsHypotheses, value: stats.hypotheses }, { label: tr.settingsStatsPosts, value: stats.posts }, { label: tr.settingsStatsResults, value: stats.results }].map(s => (
+                  <div key={s.label} className="card" style={{ padding: '14px 16px' }}>
+                    <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: 2 }}>{s.value}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <h2 className="mob-section-title" style={{ marginTop: 32 }}>Аккаунт</h2>
+
+        <div className="mob-list">
+          {/* Logout */}
+          <form action={logoutAction} style={{ display: 'contents' }}>
+            <button type="submit" className="mob-list-row mob-list-row-danger">
+              <svg className="mob-list-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 14l4-4-4-4M17 10H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <span className="mob-list-label">{tr.settingsLogout}</span>
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none" className="mob-list-chevron"><path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </form>
+          <div className="mob-row-divider" />
+
+          {/* Delete account */}
+          <button className="mob-list-row mob-list-row-danger" onClick={() => setActive(active === 'danger' ? '__none__' as Section : 'danger')}>
+            <svg className="mob-list-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L17 15H3L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 8v3M10 13.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            <span className="mob-list-label">{tr.settingsDeleteAccount}</span>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none" className="mob-list-chevron"><path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          {active === 'danger' && (
+            <div className="mob-expanded-content">
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{tr.settingsDeleteWarning}</p>
+              {!showDeleteConfirm ? (
+                <button onClick={() => setShowDeleteConfirm(true)} className="btn-secondary" style={{ width: '100%', color: 'var(--red)', borderColor: 'var(--red)' }}>{tr.settingsDeleteAccount}</button>
+              ) : (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={handleDelete} disabled={deleting} className="btn-primary" style={{ flex: 1, background: 'var(--red)' }}>{deleting ? '...' : tr.settingsDeleteConfirm}</button>
+                  <button onClick={() => setShowDeleteConfirm(false)} className="btn-secondary" style={{ flex: 1 }}>{tr.settingsDeleteCancel}</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <p className="mob-footer-text">
+          {tr.settingsMemberSince} {new Date(user.createdAt).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      </div>
+
+      {/* Desktop: sidebar nav */}
+      <nav className="settings-desktop-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {navItems.map(item => (
           <button
             key={item.key}
@@ -130,8 +314,8 @@ export default function SettingsClient({ user, stats }: Props) {
         ))}
       </nav>
 
-      {/* Content */}
-      <div>
+      {/* Desktop: Content */}
+      <div className="settings-desktop-content">
 
         {/* ── Profile ── */}
         {active === 'profile' && (
@@ -364,3 +548,4 @@ export default function SettingsClient({ user, stats }: Props) {
     </div>
   )
 }
+
