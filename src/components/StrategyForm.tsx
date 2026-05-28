@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useTransition } from 'react'
 import { saveStrategyAction, parseStrategyFileAction } from '@/lib/actions'
 
 interface Strategy {
@@ -32,6 +32,8 @@ export default function StrategyForm({
   const [strategyCollapsed, setStrategyCollapsed] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [isPending, startTransition] = useTransition()
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -192,7 +194,28 @@ export default function StrategyForm({
       </div>
 
       {/* Форма стратегии */}
-      <form action={saveStrategyAction} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <form
+        onSubmit={e => {
+          e.preventDefault()
+          setSubmitError('')
+          const fd = new FormData()
+          fd.set('projectId', projectId)
+          fd.set('audience', audience)
+          fd.set('vibe', vibe)
+          fd.set('goal', goal)
+          startTransition(async () => {
+            try {
+              await saveStrategyAction(fd)
+            } catch (err: any) {
+              // redirect() throws — ignore it; other errors show to user
+              if (!err?.message?.includes('NEXT_REDIRECT')) {
+                setSubmitError(err?.message ?? 'Ошибка создания стратегии')
+              }
+            }
+          })
+        }}
+        style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+      >
         <input type="hidden" name="projectId" value={projectId} />
 
         <div className="card" style={{ padding: 18 }}>
@@ -247,8 +270,21 @@ export default function StrategyForm({
           />
         </div>
 
-        <button type="submit" className="btn-primary" style={{ width: '100%', height: 42, fontSize: 14 }}>
-          {strategy ? 'Обновить стратегию' : 'Создать стратегию'}
+        {submitError && (
+          <div style={{ fontSize: 12, padding: '10px 14px', borderRadius: 8, background: 'var(--red-light,#fef2f2)', color: 'var(--red,#dc2626)', border: '1px solid rgba(239,68,68,0.15)' }}>
+            {submitError}
+          </div>
+        )}
+
+        <button type="submit" disabled={isPending} className="btn btn-primary" style={{ width: '100%', height: 46, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          {isPending ? (
+            <>
+              <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+              Генерирую стратегию...
+            </>
+          ) : (
+            strategy ? 'Обновить стратегию' : 'Создать стратегию'
+          )}
         </button>
       </form>
     </div>
