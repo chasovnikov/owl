@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import PlatformPicker from '@/components/PlatformPicker'
+import CompetitorPanel from '@/components/CompetitorPanel'
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
   const user = await getSession()
@@ -15,6 +16,10 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         include: {
           _count: { select: { rubrics: true } },
         },
+      },
+      competitors: {
+        orderBy: { createdAt: 'desc' },
+        include: { reports: { orderBy: { createdAt: 'desc' } } },
       },
     },
   })
@@ -31,14 +36,20 @@ export default async function ProjectPage({ params }: { params: { id: string } }
     : null
 
   return (
-    <PlatformPicker
-      projectId={project.id}
-      projectName={project.name}
-      channels={channels}
-      audience={project.tone || ''}
-      vibe={project.narrativeStyle || ''}
-      goal={project.goal || ''}
-      strategy={strategy}
-    />
+    <>
+      <PlatformPicker
+        projectId={project.id}
+        projectName={project.name}
+        channels={channels}
+        audience={project.tone || ''}
+        vibe={project.narrativeStyle || ''}
+        goal={project.goal || ''}
+        strategy={strategy}
+      />
+      <CompetitorPanel
+        projectId={project.id}
+        competitors={project.competitors}
+      />
+    </>
   )
 }
