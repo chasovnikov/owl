@@ -14,34 +14,43 @@ import {
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(formData: FormData): Promise<{ error?: string }> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  if (!email || !email.includes('@')) throw new Error('Неверный email')
-  const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) throw new Error('Пользователь не найден. Зарегистрируйся.')
-  if (user.passwordHash) {
-    const hash = hashPassword(password)
-    if (hash !== user.passwordHash) throw new Error('Неверный пароль')
+  try {
+    if (!email || !email.includes('@')) return { error: 'Неверный email' }
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) return { error: 'Пользователь не найден. Зарегистрируйся.' }
+    if (user.passwordHash) {
+      const hash = hashPassword(password)
+      if (hash !== user.passwordHash) return { error: 'Неверный пароль' }
+    }
+    await createSession(email)
+  } catch (e: any) {
+    return { error: e?.message ?? 'Ошибка входа. Попробуй снова.' }
   }
-  await createSession(email)
   redirect('/dashboard')
 }
 
-export async function signupAction(formData: FormData) {
+export async function signupAction(formData: FormData): Promise<{ error?: string }> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const confirm = formData.get('confirm') as string
   const name = (formData.get('name') as string | null)?.trim() || null
   const skipRedirect = formData.get('skipRedirect') === 'true'
-  if (!email || !email.includes('@')) throw new Error('Неверный формат email')
-  if (!password || password.length < 8) throw new Error('Пароль минимум 8 символов')
-  if (password !== confirm) throw new Error('Пароли не совпадают')
-  const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) throw new Error('Этот email уже зарегистрирован')
-  await prisma.user.create({ data: { email, passwordHash: hashPassword(password), name } })
-  await createSession(email)
+  try {
+    if (!email || !email.includes('@')) return { error: 'Неверный формат email' }
+    if (!password || password.length < 8) return { error: 'Пароль минимум 8 символов' }
+    if (password !== confirm) return { error: 'Пароли не совпадают' }
+    const existing = await prisma.user.findUnique({ where: { email } })
+    if (existing) return { error: 'Этот email уже зарегистрирован' }
+    await prisma.user.create({ data: { email, passwordHash: hashPassword(password), name } })
+    await createSession(email)
+  } catch (e: any) {
+    return { error: e?.message ?? 'Ошибка регистрации. Попробуй снова.' }
+  }
   if (!skipRedirect) redirect('/dashboard')
+  return {}
 }
 
 export async function logoutAction() {

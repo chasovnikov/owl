@@ -196,16 +196,17 @@ export default function FullOnboarding() {
     e.preventDefault()
     setLoading(true); setError('')
     try {
-      if (!data.email.includes('@')) throw new Error(tr.ob_invalidEmail)
-      if (data.password.length < 8) throw new Error(tr.ob_shortPassword)
-      if (data.password !== data.confirm) throw new Error(tr.ob_passwordMismatch)
+      if (!data.email.includes('@')) { setError(tr.ob_invalidEmail); setLoading(false); return }
+      if (data.password.length < 8) { setError(tr.ob_shortPassword); setLoading(false); return }
+      if (data.password !== data.confirm) { setError(tr.ob_passwordMismatch); setLoading(false); return }
       const fd = new window.FormData()
       fd.set('name', data.name)
       fd.set('email', data.email)
       fd.set('password', data.password)
       fd.set('confirm', data.confirm)
       fd.set('skipRedirect', 'true')
-      await signupAction(fd)
+      const res = await signupAction(fd)
+      if (res?.error) { setError(res.error); setLoading(false); return }
       setStep(5)
     } catch (err: any) { setError(err.message) }
     finally { setLoading(false) }
@@ -233,7 +234,8 @@ export default function FullOnboarding() {
       const fd = new window.FormData()
       fd.set('email', data.email)
       fd.set('password', data.password)
-      await loginAction(fd)
+      const res = await loginAction(fd)
+      if (res?.error) { setError(res.error); setLoading(false) }
     } catch (err: any) { setError(err.message); setLoading(false) }
   }
 
