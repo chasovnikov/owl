@@ -10,6 +10,14 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000'],
     },
+    serverComponentsExternalPackages: ['pdf-parse', 'mammoth'],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Не бандлим нативные модули — пусть Node.js загружает их напрямую
+      config.externals.push('pdf-parse', 'mammoth', '@napi-rs/canvas', 'canvas')
+    }
+    return config
   },
 }
 
