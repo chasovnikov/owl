@@ -5,10 +5,6 @@ import { redirect } from 'next/navigation'
 import { writeFile, unlink, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { prisma } from '@/lib/prisma'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse')
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const mammoth = require('mammoth')
 import { createSession, clearSession, getSession, hashPassword } from '@/lib/auth'
 import {
   generateHypotheses, generatePostIdeas, analyzeResults,
@@ -613,9 +609,13 @@ export async function parseStrategyFileAction(formData: FormData): Promise<{ tex
   if (ext === 'txt') {
     text = buffer.toString('utf-8')
   } else if (ext === 'pdf') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require('pdf-parse')
     const result = await pdfParse(buffer)
     text = result.text ?? ''
   } else if (ext === 'docx' || ext === 'doc') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mammoth = require('mammoth')
     const result = await mammoth.extractRawText({ buffer })
     text = result.value ?? ''
   } else {
