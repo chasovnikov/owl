@@ -137,7 +137,7 @@ export default async function DashboardPage() {
               : 'Создай первый проект'}
           </p>
         </div>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tr.dashboardSubtitle}</span>
+        <span className="hide-mobile" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tr.dashboardSubtitle}</span>
       </div>
 
       <div className="page-content">

@@ -386,10 +386,14 @@ select.input, select.inp { cursor: pointer; }
   .desktop-fab { display: none !important; }
   .main-content { padding-bottom: 80px; }
 
+  /* Hide desktop-only page-header asides on mobile */
+  .hide-mobile { display: none !important; }
+
   /* Onboarding */
   .ob-wrap { flex-direction: column; }
   .ob-left { width: 100%; min-height: 220px; padding: 32px 24px; }
-  .ob-right { padding: 32px 20px; min-height: 0; }
+  /* Extra top padding so the absolute lang/login controls don't overlap content */
+  .ob-right { padding: 72px 20px 32px; min-height: 0; }
 
   /* Bottom Nav */
   .bottom-nav {

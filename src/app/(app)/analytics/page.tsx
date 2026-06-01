@@ -182,7 +182,7 @@ export default async function AnalyticsPage() {
             {hasData ? `${fmt(totalEngagement)} вовлечённости за всё время` : 'Метрики появятся после первых публикаций'}
           </p>
         </div>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+        <span className="hide-mobile" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {projects.length} {projects.length === 1 ? 'проект' : projects.length < 5 ? 'проекта' : 'проектов'}
         </span>
       </div>
