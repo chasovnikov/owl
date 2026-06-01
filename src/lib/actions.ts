@@ -2,9 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { writeFile, unlink, mkdir } from 'fs/promises'
-import { join } from 'path'
 import { prisma } from '@/lib/prisma'
+import { uploadToStorage, removeFromStorage } from '@/lib/storage'
 import { createSession, clearSession, getSession, hashPassword } from '@/lib/auth'
 import {
   generateHypotheses, generatePostIdeas, analyzeResults,
@@ -76,10 +75,9 @@ export async function uploadAvatarAction(formData: FormData) {
   if (file.size > 5 * 1024 * 1024) throw new Error('Максимальный размер — 5 МБ')
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
   if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) throw new Error('Недопустимый формат')
-  const filename = `${user.id}.${ext}`
+  const filename = `avatars/${user.id}-${Date.now()}.${ext}`
   const bytes = await file.arrayBuffer()
-  await writeFile(join(process.cwd(), 'public', 'uploads', 'avatars', filename), Buffer.from(bytes))
-  const avatarUrl = `/uploads/avatars/${filename}`
+  const avatarUrl = await uploadToStorage(filename, bytes, file.type || `image/${ext}`)
   await prisma.user.update({ where: { id: user.id }, data: { avatarUrl } })
   revalidatePath('/settings')
   return avatarUrl
@@ -546,12 +544,9 @@ export async function uploadPostMediaAction(formData: FormData) {
   if (!file || file.size === 0) throw new Error('Файл не выбран')
   if (file.size > 10 * 1024 * 1024) throw new Error('Максимальный размер — 10 МБ')
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
-  const filename = `${postId}_${Date.now()}.${ext}`
-  const dir = join(process.cwd(), 'public', 'uploads', 'posts')
-  await mkdir(dir, { recursive: true })
+  const filename = `posts/${postId}_${Date.now()}.${ext}`
   const bytes = await file.arrayBuffer()
-  await writeFile(join(dir, filename), Buffer.from(bytes))
-  const url = `/uploads/posts/${filename}`
+  const url = await uploadToStorage(filename, bytes, file.type || 'application/octet-stream')
   const media = await prisma.postMedia.create({
     data: { postId, url, filename: file.name, mimeType: file.type || 'application/octet-stream', size: file.size },
   })
@@ -565,9 +560,9 @@ export async function deletePostMediaAction(mediaId: string) {
   const media = await prisma.postMedia.findUnique({ where: { id: mediaId } })
   if (!media) throw new Error('Файл не найден')
   try {
-    await unlink(join(process.cwd(), 'public', media.url))
+    await removeFromStorage(media.url)
   } catch {
-    // File may not exist on disk (e.g. Vercel ephemeral FS)
+    // Best-effort: object may already be gone or be a legacy local path
   }
   await prisma.postMedia.delete({ where: { id: mediaId } })
   revalidatePath('/calendar')

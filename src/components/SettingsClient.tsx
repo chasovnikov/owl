@@ -22,6 +22,7 @@ export default function SettingsClient({ user, stats }: Props) {
   const [name, setName] = useState(user.name ?? '')
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl)
   const [avatarStatus, setAvatarStatus] = useState<'idle' | 'uploading'>('idle')
+  const [avatarError, setAvatarError] = useState('')
   const [avatarHovered, setAvatarHovered] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [profileStatus, setProfileStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -47,12 +48,15 @@ export default function SettingsClient({ user, stats }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     setAvatarStatus('uploading')
+    setAvatarError('')
     try {
       const fd = new FormData()
       fd.set('avatar', file)
       const url = await uploadAvatarAction(fd)
       setAvatarUrl(url)
-    } catch {}
+    } catch (err: any) {
+      setAvatarError(err?.message ?? 'Не удалось загрузить фото')
+    }
     setAvatarStatus('idle')
     e.target.value = ''
   }
@@ -369,6 +373,7 @@ export default function SettingsClient({ user, stats }: Props) {
                     {avatarStatus === 'uploading' ? tr.settingsUploading : tr.settingsUploadPhoto}
                   </button>
                   <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{tr.settingsAvatarHint}</p>
+                  {avatarError && <p style={{ fontSize: 11, color: 'var(--red)', marginTop: 4 }}>{avatarError}</p>}
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
               </div>
