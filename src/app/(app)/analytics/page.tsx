@@ -191,13 +191,8 @@ export default async function AnalyticsPage() {
 
         {/* ── Global KPI strip ── */}
         <div
-          className="anim-slide-up"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 12,
-            marginBottom: 28,
-          }}
+          className="analytics-kpi anim-slide-up"
+          style={{ marginBottom: 28 }}
         >
           {[
             { label: 'Постов',       value: fmt(totalPosts),       sub: `${publishRate}% опубликовано` },
@@ -251,7 +246,7 @@ export default async function AnalyticsPage() {
         )}
 
         {/* ── Two columns ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+        <div className="analytics-cols">
 
           {/* Left: Projects breakdown */}
           <div className="anim-slide-up d2">

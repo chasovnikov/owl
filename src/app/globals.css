@@ -130,6 +130,10 @@ input, textarea, select, button { font-family: inherit; }
   transform: translateY(-3px) scale(1.005);
 }
 
+/* ─── Analytics responsive grids ─────────────────────── */
+.analytics-kpi  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.analytics-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
 /* ─── Dashboard project card ─────────────────────────── */
 .project-card {
   display: flex; flex-direction: column;
@@ -388,6 +392,10 @@ select.input, select.inp { cursor: pointer; }
 
   /* Hide desktop-only page-header asides on mobile */
   .hide-mobile { display: none !important; }
+
+  /* Analytics: KPI strip → 2 cols, breakdown → single column */
+  .analytics-kpi  { grid-template-columns: repeat(2, 1fr) !important; }
+  .analytics-cols { grid-template-columns: 1fr !important; }
 
   /* Onboarding */
   .ob-wrap { flex-direction: column; }
