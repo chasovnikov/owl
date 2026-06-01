@@ -185,10 +185,12 @@ export default function PlatformPicker({ projectId, projectName, channels, audie
                     {tr.updateBtn}
                   </button>
                 </Link>
+                {/* Collapse chevron — desktop only (mobile uses the link below) */}
                 <button
                   onClick={() => setStrategyCollapsed(c => !c)}
-                  className="btn-ghost"
+                  className="btn-ghost hide-mobile"
                   style={{ height: 28, width: 28, padding: 0, color: 'var(--text-muted)' }}
+                  title={strategyCollapsed ? 'Развернуть' : 'Свернуть'}
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
                     style={{ transform: strategyCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
@@ -198,68 +200,90 @@ export default function PlatformPicker({ projectId, projectName, channels, audie
               </div>
             </div>
 
-            {!strategyCollapsed && <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Summary */}
+            <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Summary — always visible (clamped on mobile) */}
               {strategy.strategySummary && (
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                <p className="strategy-summary">
                   {strategy.strategySummary}
                 </p>
               )}
 
-              {/* User inputs */}
-              {(audience || goal) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {audience && (
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <span className="section-label" style={{ flexShrink: 0, minWidth: 64 }}>{tr.audienceLabel}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{audience}</span>
+              {/* Full breakdown — desktop only, collapsible via the chevron */}
+              {!strategyCollapsed && (
+                <div className="hide-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* User inputs */}
+                  {(audience || goal) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {audience && (
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <span className="section-label" style={{ flexShrink: 0, minWidth: 64 }}>{tr.audienceLabel}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{audience}</span>
+                        </div>
+                      )}
+                      {vibe && (
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <span className="section-label" style={{ flexShrink: 0, minWidth: 64 }}>{tr.vibeLabel}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{vibe}</span>
+                        </div>
+                      )}
+                      {goal && (
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <span className="section-label" style={{ flexShrink: 0, minWidth: 64 }}>{tr.ob_goalLabel}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{goal}</span>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {vibe && (
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <span className="section-label" style={{ flexShrink: 0, minWidth: 64 }}>{tr.vibeLabel}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{vibe}</span>
+
+                  {/* Directions + Themes */}
+                  {(strategy.contentDirections?.length || strategy.exampleThemes?.length) ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {strategy.contentDirections?.length ? (
+                        <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border-color)' }}>
+                          <p className="section-label" style={{ marginBottom: 8 }}>{tr.directions}</p>
+                          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            {strategy.contentDirections.map((d: string, i: number) => (
+                              <li key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, display: 'flex', gap: 6 }}>
+                                <span style={{ color: 'var(--accent)', flexShrink: 0 }}>·</span>{d}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {strategy.exampleThemes?.length ? (
+                        <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border-color)' }}>
+                          <p className="section-label" style={{ marginBottom: 8 }}>{tr.themes}</p>
+                          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            {strategy.exampleThemes.map((t: string, i: number) => (
+                              <li key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, display: 'flex', gap: 6 }}>
+                                <span style={{ color: 'var(--accent)', flexShrink: 0 }}>·</span>{t}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                     </div>
-                  )}
-                  {goal && (
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <span className="section-label" style={{ flexShrink: 0, minWidth: 64 }}>{tr.ob_goalLabel}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{goal}</span>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               )}
 
-              {/* Directions + Themes */}
-              {(strategy.contentDirections?.length || strategy.exampleThemes?.length) ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {strategy.contentDirections?.length ? (
-                    <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border-color)' }}>
-                      <p className="section-label" style={{ marginBottom: 8 }}>{tr.directions}</p>
-                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                        {strategy.contentDirections.map((d: string, i: number) => (
-                          <li key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, display: 'flex', gap: 6 }}>
-                            <span style={{ color: 'var(--accent)', flexShrink: 0 }}>·</span>{d}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  {strategy.exampleThemes?.length ? (
-                    <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border-color)' }}>
-                      <p className="section-label" style={{ marginBottom: 8 }}>{tr.themes}</p>
-                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                        {strategy.exampleThemes.map((t: string, i: number) => (
-                          <li key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, display: 'flex', gap: 6 }}>
-                            <span style={{ color: 'var(--accent)', flexShrink: 0 }}>·</span>{t}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>}
+              {/* Mobile: link to full strategy page instead of the inline wall */}
+              <Link
+                href={`/project/${projectId}/strategy`}
+                className="only-mobile"
+                style={{
+                  alignItems: 'center', justifyContent: 'center', gap: 6,
+                  height: 40, borderRadius: 'var(--radius-sm)',
+                  background: 'var(--accent-light)', color: 'var(--accent)',
+                  fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                }}
+              >
+                Открыть стратегию
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+            </div>
           </div>
         ) : (
           <div style={{ marginBottom: 24 }}>

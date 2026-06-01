@@ -130,6 +130,10 @@ input, textarea, select, button { font-family: inherit; }
   transform: translateY(-3px) scale(1.005);
 }
 
+/* ─── Mobile-only helper + strategy summary ──────────── */
+.only-mobile { display: none; }
+.strategy-summary { font-size: 13px; line-height: 1.65; color: var(--text-secondary); }
+
 /* ─── Analytics responsive grids ─────────────────────── */
 .analytics-kpi  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .analytics-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
@@ -392,6 +396,11 @@ select.input, select.inp { cursor: pointer; }
 
   /* Hide desktop-only page-header asides on mobile */
   .hide-mobile { display: none !important; }
+  .only-mobile { display: flex !important; }
+  /* Clamp the strategy summary on mobile so it isn't a wall of text */
+  .strategy-summary {
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  }
 
   /* Analytics: KPI strip → 2 cols, breakdown → single column */
   .analytics-kpi  { grid-template-columns: repeat(2, 1fr) !important; }
