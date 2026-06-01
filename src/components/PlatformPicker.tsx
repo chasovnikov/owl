@@ -375,8 +375,9 @@ export default function PlatformPicker({ projectId, projectName, channels, audie
           </div>
         )}
 
-        {/* Add new platform */}
-        {!showAdd ? (
+        {/* Add new platform — dashed button only when channels already exist;
+            the empty state below shows the primary CTA instead */}
+        {!showAdd && channels.length > 0 ? (
           <button
             onClick={() => setShowAdd(true)}
             style={{
@@ -403,7 +404,7 @@ export default function PlatformPicker({ projectId, projectName, channels, audie
             </svg>
             {tr.addPlatformBtn}
           </button>
-        ) : (
+        ) : showAdd ? (
           <div style={{
             border: '1px solid var(--border-color)',
             borderRadius: 14, padding: 24,
@@ -506,7 +507,7 @@ export default function PlatformPicker({ projectId, projectName, channels, audie
               </button>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Empty state */}
         {channels.length === 0 && !showAdd && (
