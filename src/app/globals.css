@@ -130,6 +130,22 @@ input, textarea, select, button { font-family: inherit; }
   transform: translateY(-3px) scale(1.005);
 }
 
+/* ─── Dashboard project card ─────────────────────────── */
+.project-card {
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px; overflow: hidden;
+  text-decoration: none; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: box-shadow 0.22s cubic-bezier(0.16,1,0.3,1), transform 0.22s cubic-bezier(0.16,1,0.3,1), border-color 0.2s;
+}
+.project-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  transform: translateY(-3px);
+  border-color: rgba(0,0,0,0.10);
+}
+
 /* ─── Buttons ─────────────────────────────────────────── */
 
 /* Base button */
