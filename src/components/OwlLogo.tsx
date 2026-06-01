@@ -50,14 +50,13 @@ export function FumiIcon({ size = 22 }: { size?: number }) {
 }
 
 export function FumiLogo({ size = 22 }: { size?: number }) {
-  const fontSize = size >= 26 ? 16 : size >= 22 ? 14 : 13
+  const fontSize = size >= 26 ? 22 : size >= 22 ? 20 : 18
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <FumiIcon size={size} />
+    <div style={{ display: 'flex', alignItems: 'center' }}>
       <span style={{
         fontSize,
-        fontWeight: 600,
-        letterSpacing: '-0.025em',
+        fontWeight: 700,
+        letterSpacing: '-0.04em',
         background: 'linear-gradient(135deg, #5B6AF0, #9B6BFF)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
