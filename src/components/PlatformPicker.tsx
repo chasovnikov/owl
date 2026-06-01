@@ -295,63 +295,77 @@ export default function PlatformPicker({ projectId, projectName, channels, audie
         {/* Existing channels */}
         {channels.length > 0 && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-              {channels.map(ch => {
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+              {channels.map((ch, idx) => {
                 const meta = getPlatformMeta(ch.name)
                 return (
                   <Link
                     key={ch.id}
                     href={`/project/${projectId}/channel/${ch.id}`}
-                    style={{ textDecoration: 'none' }}
+                    className={`project-card anim-slide-up d${Math.min(idx, 8)}`}
                   >
-                    <div
-                      className="card card-hover"
-                      style={{
-                        padding: 20,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 14,
-                        transition: 'box-shadow 0.15s, transform 0.1s',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'
-                        e.currentTarget.style.transform = 'translateY(-2px)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.boxShadow = ''
-                        e.currentTarget.style.transform = 'translateY(0)'
-                      }}
-                    >
-                      {/* Icon */}
+                    {/* Platform-gradient cover */}
+                    <div style={{
+                      height: 56,
+                      background: meta.gradient,
+                      position: 'relative',
+                      flexShrink: 0,
+                    }}>
                       <div style={{
-                        width: 48, height: 48,
-                        borderRadius: 12,
-                        background: meta.gradient,
+                        position: 'absolute', inset: 0,
+                        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.08\'/%3E%3C/svg%3E")',
+                        opacity: 0.5,
+                      }} />
+                      {/* Overlapping platform icon tile */}
+                      <div style={{
+                        position: 'absolute', bottom: -18, left: 18,
+                        width: 40, height: 40, borderRadius: 11,
+                        background: 'var(--surface)',
+                        boxShadow: '0 0 0 3px var(--surface), 0 4px 12px rgba(0,0,0,0.12)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff',
-                        flexShrink: 0,
+                        color: meta.color, zIndex: 1,
                       }}>
                         {meta.icon}
                       </div>
+                    </div>
 
-                      {/* Info */}
-                      <div>
-                        <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 3 }}>
-                          {ch.name}
-                        </p>
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                          {ch.rubricsCount === 0
-                            ? tr.noHypotheses
-                            : `${ch.rubricsCount} ${lang === 'ru' ? rubricWord(ch.rubricsCount) : ch.rubricsCount === 1 ? 'hypothesis' : 'hypotheses'}`}
-                        </p>
-                      </div>
+                    {/* Body */}
+                    <div style={{ padding: '26px 18px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: 12 }}>
+                        {ch.name}
+                      </p>
 
-                      {/* Arrow */}
-                      <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: 'var(--text-muted)' }}>
-                          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                      {/* Stat footer + CTA */}
+                      <div style={{
+                        marginTop: 'auto', paddingTop: 12,
+                        borderTop: '1px solid var(--border-color)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <div style={{
+                            width: 22, height: 22, borderRadius: 6,
+                            background: `${meta.color}14`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+                              <rect x="1" y="1" width="6" height="6" rx="1.5" fill={meta.color} opacity="0.8"/>
+                              <rect x="9" y="1" width="6" height="6" rx="1.5" fill={meta.color} opacity="0.5"/>
+                              <rect x="1" y="9" width="6" height="6" rx="1.5" fill={meta.color} opacity="0.5"/>
+                              <rect x="9" y="9" width="6" height="6" rx="1.5" fill={meta.color} opacity="0.3"/>
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                            {ch.rubricsCount === 0
+                              ? tr.noHypotheses
+                              : `${ch.rubricsCount} ${lang === 'ru' ? rubricWord(ch.rubricsCount) : ch.rubricsCount === 1 ? 'hypothesis' : 'hypotheses'}`}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: meta.color, fontSize: 12, fontWeight: 600 }}>
+                          Открыть
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                            <path d="M5 3l4 3.5L5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </Link>
