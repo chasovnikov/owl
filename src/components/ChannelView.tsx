@@ -51,10 +51,45 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   PUBLISHED: { label: 'Опубликовано', color: '#16A34A', bg: '#F0FDF4' },
 }
 
+// Platform brand lookup (gradient + solid color + icon) — Telegram-energy
+const PLATFORM_BRAND: Record<string, { color: string; gradient: string; icon: React.ReactNode }> = {
+  instagram: { color: '#E1306C', gradient: 'linear-gradient(135deg, #f09433, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg> },
+  tiktok: { color: '#010101', gradient: 'linear-gradient(135deg, #010101, #2D2D2D)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 1 1 .79-5.68V9.01a6.34 6.34 0 1 0 5.56 6.29V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.02-.07z"/></svg> },
+  telegram: { color: '#2AABEE', gradient: 'linear-gradient(135deg, #2CA5E0, #1C86C0)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg> },
+  youtube: { color: '#FF0000', gradient: 'linear-gradient(135deg, #FF0000, #CC0000)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none"/></svg> },
+  vk: { color: '#4680C2', gradient: 'linear-gradient(135deg, #4680C2, #2B5FA3)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M6 9h2.5l2 3.5L13 9h2.5M8.5 15s0-2.5 2-3.5"/></svg> },
+  threads: { color: '#101010', gradient: 'linear-gradient(135deg, #1A1A1A, #3D3D3D)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 3C7.5 3 4 7 4 12s3.5 9 8 9c3.5 0 7-2.5 7-7 0-2-.8-3.5-2.2-4.2S13.5 9 12 10"/></svg> },
+}
+
+function getChannelBrand(name: string) {
+  return PLATFORM_BRAND[name.toLowerCase().trim()] ?? {
+    color: '#5B6AF0',
+    gradient: 'linear-gradient(135deg, #5B6AF0, #9B6BFF)',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>,
+  }
+}
+
 function formatDate(iso: string | null) {
   if (!iso) return null
   const d = new Date(iso)
   return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function rubricWordCV(n: number) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'рубрика'
+  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'рубрики'
+  return 'рубрик'
+}
+function postWordCV(n: number) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'пост'
+  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'поста'
+  return 'постов'
 }
 
 // ─── Post Card (mini) ──────────────────────────────────────────────────────────
@@ -77,25 +112,28 @@ function PostCard({
       style={{
         background: 'var(--surface, #fff)',
         border: '1px solid var(--border-color)',
-        borderRadius: 10,
-        padding: '12px 14px',
+        borderRadius: 12,
+        padding: '13px 15px',
         cursor: 'pointer',
         textAlign: 'left',
-        minWidth: 180,
-        maxWidth: 220,
+        minWidth: 190,
+        maxWidth: 230,
         flexShrink: 0,
-        transition: 'box-shadow 0.15s, transform 0.1s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        transition: 'box-shadow 0.18s cubic-bezier(0.16,1,0.3,1), transform 0.18s cubic-bezier(0.16,1,0.3,1), border-color 0.15s',
         display: 'flex',
         flexDirection: 'column',
-        gap: 6,
+        gap: 7,
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'
-        e.currentTarget.style.transform = 'translateY(-1px)'
+        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.10)'
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.borderColor = 'var(--border-medium)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.boxShadow = 'none'
+        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'
         e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.borderColor = 'var(--border-color)'
       }}
     >
       {date && (
@@ -153,34 +191,53 @@ function RubricSection({
   rubric,
   projectName,
   channelName,
+  brandColor,
   onPostClick,
   onAddPost,
 }: {
   rubric: RubricData
   projectName: string
   channelName: string
+  brandColor: string
   onPostClick: (post: PostData) => void
   onAddPost: (rubricId: string) => void
 }) {
   return (
-    <div style={{ marginBottom: 36 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
-          {rubric.title}
-        </h3>
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4, gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0 }}>
+          {/* Accent icon badge */}
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, flexShrink: 0, marginTop: 1,
+            background: `${brandColor}14`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="1" width="6" height="6" rx="1.5" fill={brandColor} opacity="0.85"/>
+              <rect x="9" y="1" width="6" height="6" rx="1.5" fill={brandColor} opacity="0.5"/>
+              <rect x="1" y="9" width="6" height="6" rx="1.5" fill={brandColor} opacity="0.5"/>
+              <rect x="9" y="9" width="6" height="6" rx="1.5" fill={brandColor} opacity="0.3"/>
+            </svg>
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+              {rubric.title}
+            </h3>
+            {rubric.description && (
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>{rubric.description}</p>
+            )}
+          </div>
+        </div>
         <a
           href={`/rubric/${rubric.id}/results`}
-          style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', flexShrink: 0, fontWeight: 500 }}
+          onMouseEnter={e => (e.currentTarget.style.color = brandColor)}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
         >
-          Результаты рубрики →
+          Результаты →
         </a>
       </div>
-      {rubric.description && (
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>{rubric.description}</p>
-      )}
-      <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.02em' }}>
+      <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', margin: '12px 0 10px 38px', letterSpacing: '0.02em' }}>
         Ближайшие публикации
       </p>
 
@@ -951,24 +1008,15 @@ export default function ChannelView({ data }: Props) {
   }
 
   const addPostRubric = addPostRubricId ? channel.rubrics.find(r => r.id === addPostRubricId) : null
-
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: '6px 14px',
-    fontSize: 13,
-    fontWeight: active ? 500 : 400,
-    color: active ? 'var(--text)' : 'var(--text-muted)',
-    background: 'none',
-    border: 'none',
-    borderBottom: active ? '2px solid var(--text)' : '2px solid transparent',
-    cursor: 'pointer',
-    transition: 'color 0.1s',
-  })
+  const brand = getChannelBrand(channel.name)
+  const rubricsCount = channel.rubrics.length
+  const postsCount = channel.rubrics.reduce((a, r) => a + r.posts.length, 0)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div className="page-content">
         {/* Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 20, fontSize: 13, color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, fontSize: 13, color: 'var(--text-muted)' }}>
           <Link
             href={`/project/${project.id}`}
             style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', color: 'var(--text-muted)' }}
@@ -983,22 +1031,67 @@ export default function ChannelView({ data }: Props) {
           <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
             <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5"/>
-            <circle cx="12" cy="12" r="4"/>
-            <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
-          </svg>
           <span style={{ color: 'var(--text)', fontWeight: 500 }}>{channel.name}</span>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: 28, gap: 0 }}>
-          <button style={tabStyle(activeTab === 'rubrics')} onClick={() => setActiveTab('rubrics')}>
-            Рубрики
-          </button>
-          <button style={tabStyle(activeTab === 'calendar')} onClick={() => setActiveTab('calendar')}>
-            Календарь
-          </button>
+        {/* ── Channel hero header ── */}
+        <div style={{
+          borderRadius: 16, overflow: 'hidden', marginBottom: 24,
+          border: '1px solid var(--border-color)', background: 'var(--surface)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+        }}>
+          {/* Gradient cover */}
+          <div style={{ height: 64, background: brand.gradient, position: 'relative' }}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.08\'/%3E%3C/svg%3E")',
+              opacity: 0.5,
+            }} />
+            <div style={{
+              position: 'absolute', bottom: -22, left: 24,
+              width: 52, height: 52, borderRadius: 14,
+              background: 'var(--surface)',
+              boxShadow: '0 0 0 3px var(--surface), 0 4px 12px rgba(0,0,0,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: brand.color, zIndex: 1,
+            }}>
+              {brand.icon}
+            </div>
+          </div>
+
+          {/* Name + stats row */}
+          <div style={{ padding: '30px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <h1 style={{ fontSize: 19, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: 2 }}>
+                {channel.name}
+              </h1>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {rubricsCount} {rubricWordCV(rubricsCount)} · {postsCount} {postWordCV(postsCount)}
+              </p>
+            </div>
+            {/* Tab bar (segmented, brand-colored) */}
+            <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', padding: 3, borderRadius: 10 }}>
+              {(['rubrics', 'calendar'] as const).map(t => {
+                const active = activeTab === t
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setActiveTab(t)}
+                    style={{
+                      padding: '7px 16px', fontSize: 13, fontWeight: active ? 600 : 500,
+                      color: active ? brand.color : 'var(--text-muted)',
+                      background: active ? 'var(--surface)' : 'transparent',
+                      border: 'none', borderRadius: 8, cursor: 'pointer',
+                      boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.12s',
+                    }}
+                  >
+                    {t === 'rubrics' ? 'Рубрики' : 'Календарь'}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Content */}
@@ -1017,6 +1110,7 @@ export default function ChannelView({ data }: Props) {
                 rubric={rubric}
                 projectName={project.name}
                 channelName={channel.name}
+                brandColor={brand.color}
                 onPostClick={post => setSelectedPost({ post, rubric })}
                 onAddPost={id => setAddPostRubricId(id)}
               />
