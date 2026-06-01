@@ -481,13 +481,16 @@ export default function SettingsClient({ user, stats }: Props) {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 28 }}>
               {[
-                { label: tr.settingsStatsProjects, value: stats.projects },
-                { label: tr.settingsStatsHypotheses, value: stats.hypotheses },
-                { label: tr.settingsStatsPosts, value: stats.posts },
-                { label: tr.settingsStatsResults, value: stats.results },
+                { label: tr.settingsStatsProjects, value: stats.projects, color: '#5B6AF0', bg: 'rgba(91,106,240,0.10)', icon: <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.85"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.5"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.3"/></svg> },
+                { label: tr.settingsStatsHypotheses, value: stats.hypotheses, color: '#8B5CF6', bg: 'rgba(139,92,246,0.10)', icon: <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 3.9L13.8 5l-2.9 2.8.7 4L8 9.9 4.4 11.8l.7-4L2.2 5l4.2-.1L8 1z"/></svg> },
+                { label: tr.settingsStatsPosts, value: stats.posts, color: '#0EA5E9', bg: 'rgba(14,165,233,0.10)', icon: <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor" opacity="0.85"/><rect x="1" y="7" width="10" height="2" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/></svg> },
+                { label: tr.settingsStatsResults, value: stats.results, color: '#059669', bg: 'rgba(5,150,105,0.10)', icon: <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 11l3.5-3.5 3 3L14 4"/></svg> },
               ].map(s => (
                 <div key={s.label} className="card" style={{ padding: '16px 20px' }}>
-                  <p style={{ fontSize: 28, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: 4 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 9, marginBottom: 12, background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {s.icon}
+                  </div>
+                  <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: 4 }}>
                     {s.value}
                   </p>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{s.label}</p>
