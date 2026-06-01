@@ -62,11 +62,11 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 // Gradient colors per project index
 const GRAD_COLORS = [
-  ['#5B6AF0', '#9B6BFF'],
-  ['#10B981', '#34D399'],
-  ['#F59E0B', '#FCD34D'],
+  ['#0D9668', '#0897A0'],
+  ['#E8914A', '#E8B84B'],
+  ['#9B6BFF', '#C084FC'],
   ['#EF4444', '#F97316'],
-  ['#06B6D4', '#3B82F6'],
+  ['#3B82F6', '#06B6D4'],
 ]
 
 export default function Sidebar({
@@ -127,7 +127,7 @@ export default function Sidebar({
           >
             <div style={{
               width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-              background: 'linear-gradient(135deg, #5B6AF0, #9B6BFF)',
+              background: 'linear-gradient(135deg, #0D9668, #0897A0)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 11, fontWeight: 700, color: '#fff', overflow: 'hidden',
             }}>
