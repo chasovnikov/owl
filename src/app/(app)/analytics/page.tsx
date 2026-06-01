@@ -3,13 +3,22 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-// Gradient pairs for projects
+// Gradient pairs for projects — synced with dashboard PROJECT_PALETTES
 const GRAD_COLORS = [
   ['#5B6AF0', '#9B6BFF'],
-  ['#10B981', '#34D399'],
-  ['#F59E0B', '#FCD34D'],
-  ['#EF4444', '#F97316'],
-  ['#06B6D4', '#3B82F6'],
+  ['#059669', '#10B981'],
+  ['#F59E0B', '#F97316'],
+  ['#EF4444', '#EC4899'],
+  ['#0EA5E9', '#6366F1'],
+  ['#8B5CF6', '#D946EF'],
+]
+
+// KPI accent icons (ClickUp-style colored badges)
+const KPI_META: { color: string; bg: string; icon: React.ReactNode }[] = [
+  { color: '#5B6AF0', bg: 'rgba(91,106,240,0.10)', icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor" opacity="0.85"/><rect x="1" y="7" width="10" height="2" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/></svg> },
+  { color: '#0EA5E9', bg: 'rgba(14,165,233,0.10)', icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="8" cy="8" r="1.8" fill="currentColor" stroke="none"/></svg> },
+  { color: '#EC4899', bg: 'rgba(236,72,153,0.10)', icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14s-5.5-3.5-5.5-7.2A3.3 3.3 0 0 1 8 4.5a3.3 3.3 0 0 1 5.5 2.3C13.5 10.5 8 14 8 14z"/></svg> },
+  { color: '#F59E0B', bg: 'rgba(245,158,11,0.10)', icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2h8a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg> },
 ]
 
 function fmt(n: number): string {
@@ -165,9 +174,14 @@ export default async function AnalyticsPage() {
 
       {/* Page header */}
       <div className="page-header">
-        <h1 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
-          Аналитика
-        </h1>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <h1 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+            Аналитика
+          </h1>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            {hasData ? `${fmt(totalEngagement)} вовлечённости за всё время` : 'Метрики появятся после первых публикаций'}
+          </p>
+        </div>
         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {projects.length} {projects.length === 1 ? 'проект' : projects.length < 5 ? 'проекта' : 'проектов'}
         </span>
@@ -190,19 +204,29 @@ export default async function AnalyticsPage() {
             { label: 'Просмотры',    value: fmt(totalViews),       sub: 'суммарно' },
             { label: 'Лайки',        value: fmt(totalLikes),       sub: 'суммарно' },
             { label: 'Сохранения',   value: fmt(totalSaves),       sub: 'суммарно' },
-          ].map((s, i) => (
-            <div
-              key={s.label}
-              className={`card anim-slide-up d${i}`}
-              style={{ padding: '16px 18px' }}
-            >
-              <p style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                {s.value}
-              </p>
-              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{s.label}</p>
-              <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.sub}</p>
-            </div>
-          ))}
+          ].map((s, i) => {
+            const m = KPI_META[i]
+            return (
+              <div
+                key={s.label}
+                className={`card anim-slide-up d${i}`}
+                style={{ padding: '16px 18px' }}
+              >
+                <div style={{
+                  width: 30, height: 30, borderRadius: 9, marginBottom: 12,
+                  background: m.bg, color: m.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {m.icon}
+                </div>
+                <p style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
+                  {s.value}
+                </p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{s.label}</p>
+                <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.sub}</p>
+              </div>
+            )
+          })}
         </div>
 
         {!hasData && (

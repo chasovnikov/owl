@@ -47,6 +47,12 @@ const PROJECT_COLORS = [
   '#6366F1', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EF4444', '#14B8A6',
 ]
 
+function postWordCal(n: number) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'пост'
+  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'поста'
+  return 'постов'
+}
+
 export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [filterProject, setFilterProject] = useState<string>('all')
@@ -110,9 +116,14 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div className="page-content">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em' }}>
-            Календарь
-          </h1>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.025em', marginBottom: 2 }}>
+              Календарь
+            </h1>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+              {allPosts.length > 0 ? `${allPosts.length} ${postWordCal(allPosts.length)} в плане` : 'Все публикации в одном месте'}
+            </p>
+          </div>
           <div className="calendar-filters" style={{ display: 'flex', gap: 8 }}>
             {/* Filters — all visible, downstream disabled until parent selected */}
             <select
@@ -153,7 +164,7 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <button
             onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
-            style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 6, cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--border-color)', borderRadius: 9, cursor: 'pointer', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }}
           >
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
               <path d="M6.5 1.5L3 5l3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -164,7 +175,7 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
           </span>
           <button
             onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
-            style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 6, cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--border-color)', borderRadius: 9, cursor: 'pointer', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }}
           >
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
               <path d="M3.5 1.5L7 5l-3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -183,7 +194,7 @@ export default function GlobalCalendar({ projects }: { projects: ProjectItem[] }
         </div>
 
         {/* ── Desktop calendar grid ── */}
-        <div className="calendar-desktop-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', border: '1px solid var(--border-color)', borderRadius: 12, overflow: 'hidden' }}>
+        <div className="calendar-desktop-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', border: '1px solid var(--border-color)', borderRadius: 16, overflow: 'hidden', background: 'var(--surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           {dayNames.map(d => (
             <div key={d} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center', borderBottom: '1px solid var(--border-color)', background: '#FAFAFA' }}>
               {d}
