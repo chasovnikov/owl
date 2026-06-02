@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { uploadToStorage, removeFromStorage } from '@/lib/storage'
+import { fetchMetrics, type MetricsResult } from '@/lib/metrics'
 import { createSession, clearSession, getSession, hashPassword } from '@/lib/auth'
 import {
   generateHypotheses, generatePostIdeas, analyzeResults,
@@ -453,6 +454,32 @@ export async function extractMetricsAction(postId: string, base64Image: string) 
   const user = await getSession()
   if (!user) throw new Error('Не авторизован')
   return extractMetricsFromScreenshot(base64Image)
+}
+
+// Auto-fetch metrics from a published post URL (Telegram / YouTube / VK, free).
+export async function fetchPostMetricsAction(
+  postId: string,
+  url: string,
+): Promise<MetricsResult & { saved?: boolean }> {
+  const user = await getSession()
+  if (!user) return { ok: false, error: 'Не авторизован' }
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { rubric: { include: { channel: true } } },
+  })
+  if (!post) return { ok: false, error: 'Пост не найден' }
+  const channelName = post.rubric?.channel?.name ?? post.platform ?? ''
+  const result = await fetchMetrics(channelName, url)
+  if (!result.ok) return result
+  const { views, likes, comments, saves } = result.metrics
+  await prisma.postResult.upsert({
+    where: { postId },
+    update: { views, likes, comments, saves },
+    create: { postId, views, likes, comments, saves },
+  })
+  await prisma.post.update({ where: { id: postId }, data: { publishedUrl: url } })
+  revalidatePath('/project/[id]/channel/[channelId]', 'page')
+  return { ...result, saved: true }
 }
 
 // ─── Competitor Analysis ──────────────────────────────────────────────────────

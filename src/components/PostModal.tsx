@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { updatePostAction, saveResultAction, uploadPostMediaAction, deletePostMediaAction } from '@/lib/actions'
+import { updatePostAction, saveResultAction, uploadPostMediaAction, deletePostMediaAction, fetchPostMetricsAction } from '@/lib/actions'
 
 export interface PostModalData {
   id: string
@@ -49,6 +49,31 @@ export default function PostModal({ post, onClose, onSaved }: PostModalProps) {
   const [comments, setComments] = useState(post.result?.comments?.toString() ?? '')
   const [saves, setSaves] = useState(post.result?.saves?.toString() ?? '')
   const [savingMetrics, setSavingMetrics] = useState(false)
+
+  // Auto-fetch metrics from a published URL
+  const [publishedUrl, setPublishedUrl] = useState('')
+  const [fetching, setFetching] = useState(false)
+  const [fetchMsg, setFetchMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  async function handleFetchMetrics() {
+    if (!publishedUrl.trim()) { setFetchMsg({ kind: 'err', text: 'Вставь ссылку на пост' }); return }
+    setFetching(true)
+    setFetchMsg(null)
+    try {
+      const res = await fetchPostMetricsAction(post.id, publishedUrl.trim())
+      if (!res.ok) { setFetchMsg({ kind: 'err', text: res.error }); return }
+      setViews(String(res.metrics.views))
+      setLikes(String(res.metrics.likes))
+      setComments(String(res.metrics.comments))
+      setSaves(String(res.metrics.saves))
+      setFetchMsg({ kind: 'ok', text: res.note ?? 'Метрики подтянуты и сохранены' })
+      onSaved?.()
+    } catch (e: any) {
+      setFetchMsg({ kind: 'err', text: e?.message ?? 'Ошибка' })
+    } finally {
+      setFetching(false)
+    }
+  }
 
   const fileRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
@@ -333,6 +358,38 @@ export default function PostModal({ post, onClose, onSaved }: PostModalProps) {
           {status === 'PUBLISHED' && (
             <div style={{ padding: 14, background: '#F9FAFB', borderRadius: 10, border: '1px solid var(--border-color)' }}>
               <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>Метрики</p>
+
+              {/* Auto-fetch from published URL (Telegram / YouTube / VK) */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>
+                  Ссылка на опубликованный пост
+                </label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="url"
+                    value={publishedUrl}
+                    onChange={e => setPublishedUrl(e.target.value)}
+                    placeholder="t.me/… · youtube.com/… · vk.com/wall…"
+                    className="input"
+                    style={{ fontSize: 13, flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleFetchMetrics}
+                    disabled={fetching}
+                    className="btn btn-secondary btn-sm"
+                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                  >
+                    {fetching ? 'Тяну…' : 'Подтянуть'}
+                  </button>
+                </div>
+                {fetchMsg && (
+                  <p style={{ fontSize: 11, marginTop: 6, lineHeight: 1.4, color: fetchMsg.kind === 'ok' ? 'var(--green)' : 'var(--red)' }}>
+                    {fetchMsg.text}
+                  </p>
+                )}
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Просмотры', value: views, set: setViews },

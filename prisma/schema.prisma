@@ -98,6 +98,7 @@ model Post {
   hashtags               String
   platform               String      @default("Instagram")
   postText               String?     // основной текст поста
+  publishedUrl           String?     // ссылка на опубликованный пост (для автоподтягивания метрик)
   status                 String      @default("DRAFT")
   posted                 Boolean     @default(false)
   isUserCreated          Boolean     @default(false)
